@@ -72,7 +72,7 @@ void COMP_FG(const vector<double> &U, const vector<double> &V, vector<double> &F
 
             d2UdY2 = (U[i * (jmax + 2) + (j + 1)] - 2.0 * U[i * (jmax + 2) + j] + U[i * (jmax + 2) + (j - 1)]) / dely / dely;
 
-            F[i * (jmax + 2) + j] = U[i * (jmax + 2) + j] + delt * ((d2UdX2 + d2UdY2) / Re - dU2dX - dUVdY + GX)
+            F[i * (jmax + 2) + j] = U[i * (jmax + 2) + j] + delt * ((d2UdX2 + d2UdY2) / Re - dU2dX - dUVdY + GX);
         }
 
     for (int i = 1; i <= imax; i++)
@@ -111,20 +111,5 @@ void COMP_FG(const vector<double> &U, const vector<double> &V, vector<double> &F
 }
     int main()
     {
-        // vector<double> a = {1,-22,2,-3,5};
-        // vector<double> b = vector_abs(a);
-        // b.push_back(8);
-
-        // for (double i: b)
-        //     cout << i << ' ';
-
-        // cout << 5;
-
-        cout << c;
-        test(c);
-        cout << c;
-
-        // help 2
-
         return 0;
     }
