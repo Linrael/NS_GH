@@ -17,6 +17,7 @@ double Re;
 double tau;
 vector<double> F;
 vector<double> G;
+vector<double> RHS;
 
 vector<double> vector_abs(vector<double> vec)
 {
@@ -62,15 +63,15 @@ void COMP_FG(const vector<double> &U, const vector<double> &V, vector<double> &F
                               fabs(U[(i - 1) * (jmax + 2) + j] + U[i * (jmax + 2) + j]) * (U[(i - 1) * (jmax + 2) + j] - U[i * (jmax + 2) + j]))) /
                     (4.0 * delx);
 
-            dUVdY = ((V[i * (jmax + 2) + j] + V[(i + 1) * (jmax + 2) + j]) * (U[i * (jmax + 2) + j] + U[i * (jmax + 2) + (j + 1)]) -
-                     (V[i * (jmax + 2) + (j - 1)] + V[(i + 1) * (jmax + 2) + (j - 1)]) * (U[i * (jmax + 2) + (j - 1)] + U[i * (jmax + 2) + j]) +
-                     gamma * (fabs(V[i * (jmax + 2) + j] + V[(i + 1) * (jmax + 2) + j]) * (U[i * (jmax + 2) + j] - U[i * (jmax + 2) + (j + 1)]) -
-                              fabs(V[i * (jmax + 2) + (j - 1)] + V[(i + 1) * (jmax + 2) + (j - 1)]) * (U[i * (jmax + 2) + (j - 1)] - U[i * (jmax + 2) + j]))) /
+            dUVdY = ((V[i * (jmax + 2) + j] + V[(i + 1) * (jmax + 2) + j]) * (U[i * (jmax + 2) + j] + U[i * (jmax + 2) + j + 1]) -
+                     (V[i * (jmax + 2) + j - 1] + V[(i + 1) * (jmax + 2) + j - 1]) * (U[i * (jmax + 2) + j - 1] + U[i * (jmax + 2) + j]) +
+                     gamma * (fabs(V[i * (jmax + 2) + j] + V[(i + 1) * (jmax + 2) + j]) * (U[i * (jmax + 2) + j] - U[i * (jmax + 2) + j + 1]) -
+                              fabs(V[i * (jmax + 2) + j - 1] + V[(i + 1) * (jmax + 2) + j - 1]) * (U[i * (jmax + 2) + j - 1] - U[i * (jmax + 2) + j]))) /
                     (4.0 * dely);
 
             d2UdX2 = (U[(i + 1) * (jmax + 2) + j] - 2.0 * U[i * (jmax + 2) + j] + U[(i - 1) * (jmax + 2) + j]) / delx / delx;
 
-            d2UdY2 = (U[i * (jmax + 2) + (j + 1)] - 2.0 * U[i * (jmax + 2) + j] + U[i * (jmax + 2) + (j - 1)]) / dely / dely;
+            d2UdY2 = (U[i * (jmax + 2) + j + 1] - 2.0 * U[i * (jmax + 2) + j] + U[i * (jmax + 2) + j - 1]) / dely / dely;
 
             F[i * (jmax + 2) + j] = U[i * (jmax + 2) + j] + delt * ((d2UdX2 + d2UdY2) / Re - dU2dX - dUVdY + GX);
         }
@@ -78,21 +79,21 @@ void COMP_FG(const vector<double> &U, const vector<double> &V, vector<double> &F
     for (int i = 1; i <= imax; i++)
         for (int j = 1; j <= jmax - 1; j++)
         {
-            dUVdX = ((U[i * (jmax + 2) + j] + U[i * (jmax + 2) + (j + 1)]) * (V[i * (jmax + 2) + j] + V[(i + 1) * (jmax + 2) + j]) -
+            dUVdX = ((U[i * (jmax + 2) + j] + U[i * (jmax + 2) + j + 1]) * (V[i * (jmax + 2) + j] + V[(i + 1) * (jmax + 2) + j]) -
                      (U[(i - 1) * (jmax + 2) + j] + U[(i - 1) * (jmax + 2) + j + 1]) * (V[(i - 1) * (jmax + 2) + j] + V[i * (jmax + 2) + j]) +
-                     gamma * (fabs(U[i * (jmax + 2) + j] + U[i * (jmax + 2) + (j + 1)]) * (V[i * (jmax + 2) + j] - V[(i + 1) * (jmax + 2) + j]) -
+                     gamma * (fabs(U[i * (jmax + 2) + j] + U[i * (jmax + 2) + j + 1]) * (V[i * (jmax + 2) + j] - V[(i + 1) * (jmax + 2) + j]) -
                               fabs(U[(i - 1) * (jmax + 2) + j] + U[(i - 1) * (jmax + 2) + j + 1]) * (V[(i - 1) * (jmax + 2) + j] - V[i * (jmax + 2) + j]))) /
                     (4.0 * delx);
 
-            dV2dY = ((V[i * (jmax + 2) + j] + V[i * (jmax + 2) + (j + 1)]) * (V[i * (jmax + 2) + j] + V[i * (jmax + 2) + (j + 1)]) -
-                     (V[i * (jmax + 2) + (j - 1)] + V[i * (jmax + 2) + j]) * (V[i * (jmax + 2) + (j - 1)] + V[i * (jmax + 2) + j]) -
-                     gamma * (fabs(V[i * (jmax + 2) + j] + V[i * (jmax + 2) + (j + 1)]) * (V[i * (jmax + 2) + j] - V[i * (jmax + 2) + (j + 1)]) +
-                              fabs(V[i * (jmax + 2) + (j - 1)] + V[i * (jmax + 2) + j]) * (V[i * (jmax + 2) + (j - 1)] - V[i * (jmax + 2) + j]))) /
+            dV2dY = ((V[i * (jmax + 2) + j] + V[i * (jmax + 2) + j + 1]) * (V[i * (jmax + 2) + j] + V[i * (jmax + 2) + j + 1]) -
+                     (V[i * (jmax + 2) + j - 1] + V[i * (jmax + 2) + j]) * (V[i * (jmax + 2) + j - 1] + V[i * (jmax + 2) + j]) -
+                     gamma * (fabs(V[i * (jmax + 2) + j] + V[i * (jmax + 2) + j + 1]) * (V[i * (jmax + 2) + j] - V[i * (jmax + 2) + j + 1]) +
+                              fabs(V[i * (jmax + 2) + j - 1] + V[i * (jmax + 2) + j]) * (V[i * (jmax + 2) + j - 1] - V[i * (jmax + 2) + j]))) /
                     (4.0 * dely);
 
             d2VdX2 = (V[(i + 1) * (jmax + 2) + j] - 2.0 * V[i * (jmax + 2) + j] + V[(i - 1) * (jmax + 2) + j]) / delx / delx;
 
-            d2VdY2 = (V[i * (jmax + 2) + (j + 1)] - 2.0 * V[i * (jmax + 2) + j] + V[i * (jmax + 2) + (j - 1)]) / dely / dely;
+            d2VdY2 = (V[i * (jmax + 2) + j + 1] - 2.0 * V[i * (jmax + 2) + j] + V[i * (jmax + 2) + j - 1]) / dely / dely;
 
             G[i * (jmax + 2) + j] = V[i * (jmax + 2) + j] + delt * ((d2VdX2 + d2VdY2) / Re - dUVdX - dV2dY + GY);
         }
@@ -109,7 +110,86 @@ void COMP_FG(const vector<double> &U, const vector<double> &V, vector<double> &F
         G[i * (jmax + 2) + jmax] = V[i * (jmax + 2) + jmax];
     }
 }
-    int main()
+
+void COMP_RHS(const vector<double> &F, const vector<double> &G, vector<double> &RHS, int imax, int jmax, double delt, double delx, double dely)
+{
+    for (int i = 1; i <= imax; i++)
+        for (int j = 1; j <= jmax; j++)
+            RHS[i * (jmax + 2) + j] = ((F[i * (jmax + 2) + j] - F[(i - 1) * (jmax + 2) + j]) / delx +
+                                       (G[i * (jmax + 2) + j] - G[i * (jmax + 2) + j - 1]) / dely) /
+                                      delt;
+}
+
+int POISSON(vector<double> &P, vector<double> RHS, int imax, int jmax, double delx, double dely, double eps, int itermax, double omg, double &res)
+{
+    for (int iter = 1; iter <= itermax; iter++)
     {
-        return 0;
+        double _dx2 = 1 / (delx * delx);
+        double _dy2 = 1 / (dely * dely);
+
+        for (int j = 1; j <= jmax; j++)
+        {
+            P[j] = P[jmax + 2 + j];
+            P[(imax + 1) * (jmax + 2) + j] = P[imax * (jmax + 2) + j];
+        }
+
+        for (int i = 1; i <= imax; i++)
+        {
+            P[i * (jmax + 2)] = P[i * (jmax + 2) + 1];
+            P[i * (jmax + 2) + jmax + 1] = P[i * (jmax + 2) + jmax];
+        }
+
+        for (int i = 1; i <= imax; i++)
+            for (int j = 1; j <= jmax; j++)
+            {
+                P[i * (jmax + 2) + j] = (1 - omg) * P[i * (jmax + 2) + j] +
+                                        omg *
+                                            ((P[(i + 1) * (jmax + 2) + j] + P[(i - 1) * (jmax + 2) + j]) * _dx2 +
+                                             (P[i * (jmax + 2) + j + 1] + P[i * (jmax + 2) + j - 1]) * _dy2 -
+                                             RHS[i * (jmax + 2) + j]) /
+                                            (2 * (_dx2 + _dy2));
+            }
+
+        res = 0;
+        double sum = 0;
+        for (int i = 1; i <= imax; i++)
+            for (int j = 1; j <= jmax; j++)
+            {
+                sum = (P[(i + 1) * (jmax + 2) + j] - P[i * (jmax + 2) + j] -
+                       P[i * (jmax + 2) + j] + P[(i - 1) * (jmax + 2) + j]) *
+                          _dx2 +
+                      (P[i * (jmax + 2) + j + 1] - P[i * (jmax + 2) + j] -
+                       P[i * (jmax + 2) + j] - P[i * (jmax + 2) + j - 1]) *
+                          _dy2 -
+                      RHS[i * (jmax + 2) + j];
+                res += sum * sum;
+            }
+        res = sqrt(res / (imax * jmax));
+        if (res < eps)
+            return iter;
     }
+    return itermax;
+}
+
+void ADAP_UV(vector<double> &U, vector<double> V, const vector<double> &F, const vector<double> &G, const vector<double> &P, int imax, int jmax, double delt, double delx, double dely)
+{
+    for (int i = 1; i <= imax - 1; i++)
+        for (int j = 1; j <= jmax; j++)
+        {
+            U[i * (jmax + 2) + j] = F[i * (jmax + 2) + j] - (P[(i + 1) * (jmax + 2) + j] - P[i * (jmax + 2) + j]) * delt / delx;
+        }
+    for (int i = 1; i <= imax; i++)
+        for (int j = 1; j <= jmax - 1; j++)
+        {
+            V[i * (jmax + 2) + j] = G[i * (jmax + 2) + j] - (P[i * (jmax + 2) + j + 1] - P[i * (jmax + 2) + j]) * delt / dely;
+        }
+}
+
+int main()
+{
+    int i;
+    for (i = 1; i <= 10; i++)
+        cout << i;
+    cout << i;
+    return 0;
+}
