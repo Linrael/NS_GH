@@ -191,6 +191,6 @@ int main()
     for (i = 1; i <= 10; i++)
         cout << i;
     cout << i;
-    // help 2
+    // help 3
     return 0;
 }
