@@ -4,21 +4,6 @@
 #include <cmath>
 using namespace std;
 
-int imax = 100;
-int jmax = 100;
-double a = 1;
-double b = 1;
-double delx = a / imax;
-double dely = b / jmax;
-vector<double> U;
-vector<double> V;
-double delt = 1.;
-double Re;
-double tau;
-vector<double> F;
-vector<double> G;
-vector<double> RHS;
-
 vector<double> vector_abs(vector<double> vec)
 {
     vector<double> abs = vec; // note to myself: changing abs doesnt change vec
@@ -47,11 +32,12 @@ void SETBCOND(vector<double> &U, vector<double> &V, int imax, int jmax, int wW, 
     for (int i = 1; i < imax; i++)
     {
         U[i * (jmax + 2)] = -U[i * (jmax + 2) + 1];
-        U[i * (jmax + 2) + jmax + 1] = -U[i * (jmax + 2) + jmax];
+        // U[i * (jmax + 2) + jmax + 1] = -U[i * (jmax + 2) + jmax];
+        U[i * (jmax + 2) + jmax + 1] = 0.5 -U[i * (jmax + 2) + jmax];
     }
 }
 
-void COMP_FG(const vector<double> &U, const vector<double> &V, vector<double> &F, vector<double> &G, int imax, int jmax, double delt, double delx, double dely, double GX, double GY, double gamma, double Re)
+void COMP_FG(const vector<double> &U, const vector<double> &V, vector<double> &F, vector<double> &G, int imax, int jmax, double delt, double delx, double dely, double gx, double gy, double gamma, double Re)
 {
     double d2UdX2, d2UdY2, dU2dX, dUVdY, d2VdX2, d2VdY2, dUVdX, dV2dY;
     for (int i = 1; i <= imax - 1; i++)
@@ -73,7 +59,7 @@ void COMP_FG(const vector<double> &U, const vector<double> &V, vector<double> &F
 
             d2UdY2 = (U[i * (jmax + 2) + j + 1] - 2.0 * U[i * (jmax + 2) + j] + U[i * (jmax + 2) + j - 1]) / dely / dely;
 
-            F[i * (jmax + 2) + j] = U[i * (jmax + 2) + j] + delt * ((d2UdX2 + d2UdY2) / Re - dU2dX - dUVdY + GX);
+            F[i * (jmax + 2) + j] = U[i * (jmax + 2) + j] + delt * ((d2UdX2 + d2UdY2) / Re - dU2dX - dUVdY + gx);
         }
 
     for (int i = 1; i <= imax; i++)
@@ -95,7 +81,7 @@ void COMP_FG(const vector<double> &U, const vector<double> &V, vector<double> &F
 
             d2VdY2 = (V[i * (jmax + 2) + j + 1] - 2.0 * V[i * (jmax + 2) + j] + V[i * (jmax + 2) + j - 1]) / dely / dely;
 
-            G[i * (jmax + 2) + j] = V[i * (jmax + 2) + j] + delt * ((d2VdX2 + d2VdY2) / Re - dUVdX - dV2dY + GY);
+            G[i * (jmax + 2) + j] = V[i * (jmax + 2) + j] + delt * ((d2VdX2 + d2VdY2) / Re - dUVdX - dV2dY + gy);
         }
 
     for (int j = 1; j <= jmax; j++)
@@ -187,10 +173,50 @@ void ADAP_UV(vector<double> &U, vector<double> V, const vector<double> &F, const
 
 int main()
 {
-    int i;
-    for (i = 1; i <= 10; i++)
-        cout << i;
-    cout << i;
-    // help 3
+    int imax = 32;
+    int jmax = 32;
+    double xlength = 1;
+    double ylength = 1;
+    double delx = xlength / imax;
+    double dely = ylength / jmax;
+    vector<double> U((imax + 2) * (jmax + 2), 0);
+    vector<double> V((imax + 2) * (jmax + 2), 0);
+    double delt = 0.02;
+    double Re = 1000;
+    double gx = 0;
+    double gy = 0;
+    double tau = 0.5;
+    double gamma = 0.9;
+    double eps = 0.001;
+    double omg = 1.7;
+    int itermax = 100;
+    vector<double> P((imax + 2) * (jmax + 2), 0);
+    vector<double> F((imax + 2) * (jmax + 2), 0);
+    vector<double> G((imax + 2) * (jmax + 2), 0);
+    vector<double> RHS((imax + 2) * (jmax + 2), 0);
+    double res = 0;
+
+    int n = 0;
+    double tend = 10;
+    for (double t = 0; t < tend; t += delt)
+    {
+        COMP_DELT(delt, imax, jmax, delx, dely, U, V, Re, tau);
+        SETBCOND(U, V, imax, jmax,0, 0, 0, 0);
+        COMP_FG(U, V, F, G, imax, jmax, delt, delx, dely, gx, gy, gamma, Re);
+        COMP_RHS(F, G, RHS, imax, jmax, delt, delx, dely);
+        POISSON(P, RHS, imax, jmax, delx, dely, eps, itermax, omg, res);
+        ADAP_UV(U, V, F, G, P, imax, jmax, delt, delx, dely);
+        n += 1;
+    }
+    
+    cout << "finished in " << n << " steps\n";
+    for (int x : U)
+        cout << x << " ";
+    cout << "\n";
+    for (int x : V)
+        cout << x << " ";
+    cout << "\n";
+    for (int x : P)
+        cout << x << " ";
     return 0;
 }
