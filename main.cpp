@@ -39,12 +39,12 @@ vector<double> vector_abs(vector<double> vec)
     return abs;
 }
 
-void COMP_DELT(double &delt, int imax, int jmax, double delx, double dely, vector<double> U, vector<double> V, double Re, double tau)
-{
-    vector<double> U_abs = vector_abs(U);
-    vector<double> V_abs = vector_abs(V);
-    delt = tau * min({Re / ((1 / (delx * delx) + 1 / (dely * dely)) * 2), delx / *max_element(U_abs.begin(), U_abs.end()), dely / *max_element(V_abs.begin(), V_abs.end())});
-}
+// void COMP_DELT(double &delt, int imax, int jmax, double delx, double dely, vector<double> U, vector<double> V, double Re, double tau)
+// {
+//     vector<double> U_abs = vector_abs(U);
+//     vector<double> V_abs = vector_abs(V);
+//     delt = tau * min({Re / ((1 / (delx * delx) + 1 / (dely * dely)) * 2), delx / *max_element(U_abs.begin(), U_abs.end()), dely / *max_element(V_abs.begin(), V_abs.end())});
+// }
 
 void SETBCOND(vector<double> &U, vector<double> &V, int imax, int jmax, int wW, int wE, int wN, int wS)
 {
@@ -230,12 +230,7 @@ void set_parameters(string fileName, double &xlength, double &ylength, int &imax
 
 int main()
 {
-    // int i;
-    // for (i = 1; i <= 10; i++)
-    //     cout << i;
-    // cout << i;
-    // // help 3
-    // return 0;
+    
     set_parameters("parameterfiles/test1.txt",xlength,ylength,imax,jmax,delx,dely,t_end,delt,tau,N,itermax,eps,omega,cgamma,Re,Pr,beta,GX,GY,UI,VI,PI);
     cout << xlength << ylength << imax << jmax << delx << dely << t_end << delt<<tau<<N<<itermax<<eps<<omega<<cgamma<<Re<<Pr<<beta<<GX<<GY<< endl;
     cout << UI<< endl;
@@ -244,12 +239,12 @@ int main()
 
     imax=5;
     jmax=6;
-    vector<double> U(imax*jmax,UI);
-    vector<double> V(imax*jmax,VI);
-    vector<double> P(imax*jmax,PI);
+    vector<double> U((imax+2)*(jmax+2),UI);
+    vector<double> V((imax+2)*(jmax+2),VI);
+    vector<double> P((imax+2)*(jmax+2),PI);
     cout << U.size() << V.size() << P.size()<< endl;
 
-    write_parameters("newdatafile.txt",U,V,P,imax,jmax);
+    write_parameters("newdatafile.txt",U,V,P,imax,jmax,xlength,ylength);
 
 //     int n = 0;
 //    double tend = 10;
