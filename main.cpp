@@ -2,7 +2,31 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
+#include "misc.hpp"
+
 using namespace std;
+
+int imax = 5;
+int jmax = 5;
+double xlength = 1.;
+double ylength = 1.;
+double delx = xlength / imax;
+double dely = ylength / jmax;
+vector<double> U;
+vector<double> V;
+vector<double> P;
+double t_end = 5.;
+double delt = 1.;
+double Re;
+double tau;
+vector<double> F;
+vector<double> G;
+vector<double> RHS;
+
+int N;
+int itermax;
+double eps;
+double omega,cgamma,beta,Pr,GX,GY,UI,VI,PI;
 
 vector<double> vector_abs(vector<double> vec)
 {
@@ -171,52 +195,83 @@ void ADAP_UV(vector<double> &U, vector<double> V, const vector<double> &F, const
         }
 }
 
+void set_parameters(string fileName, double &xlength, double &ylength, int &imax, int &jmax, double &delx, double &dely,
+               double &t_end, double &delt, double &tau, int &N,
+               int &itermax, double &eps, double &omega, double &cgamma,
+               double &Re,double &Pr,double &beta,double &GX,double &GY,
+               double &UI,double &VI,double &PI
+){
+    double* params = read_parameters(fileName);
+    xlength=params[0];
+    ylength=params[1];
+    imax=int(params[2]);
+    jmax=int(params[3]);
+    delx=params[4];
+    dely=params[5];
+    t_end=params[6];
+    delt=params[7];
+    tau=params[8];
+    N=int(params[9]);
+    itermax=int(params[10]);
+    eps=params[11];
+    omega=params[12];
+    cgamma=params[13];
+    Re=params[14];
+    Pr=params[15];
+    beta=params[16];
+    GX=params[17];
+    GY=params[18];
+    UI=params[19];
+    VI=params[20];
+    PI=params[21];
+
+
+}
+
 int main()
 {
-    int imax = 32;
-    int jmax = 32;
-    double xlength = 1;
-    double ylength = 1;
-    double delx = xlength / imax;
-    double dely = ylength / jmax;
-    vector<double> U((imax + 2) * (jmax + 2), 0);
-    vector<double> V((imax + 2) * (jmax + 2), 0);
-    double delt = 0.02;
-    double Re = 1000;
-    double gx = 0;
-    double gy = 0;
-    double tau = 0.5;
-    double gamma = 0.9;
-    double eps = 0.001;
-    double omg = 1.7;
-    int itermax = 100;
-    vector<double> P((imax + 2) * (jmax + 2), 0);
-    vector<double> F((imax + 2) * (jmax + 2), 0);
-    vector<double> G((imax + 2) * (jmax + 2), 0);
-    vector<double> RHS((imax + 2) * (jmax + 2), 0);
-    double res = 0;
+    // int i;
+    // for (i = 1; i <= 10; i++)
+    //     cout << i;
+    // cout << i;
+    // // help 3
+    // return 0;
+    set_parameters("parameterfiles/test1.txt",xlength,ylength,imax,jmax,delx,dely,t_end,delt,tau,N,itermax,eps,omega,cgamma,Re,Pr,beta,GX,GY,UI,VI,PI);
+    cout << xlength << ylength << imax << jmax << delx << dely << t_end << delt<<tau<<N<<itermax<<eps<<omega<<cgamma<<Re<<Pr<<beta<<GX<<GY<< endl;
+    cout << UI<< endl;
+    cout << VI<<endl;
+    cout << PI<<endl;
 
-    int n = 0;
-    double tend = 10;
-    for (double t = 0; t < tend; t += delt)
-    {
-        COMP_DELT(delt, imax, jmax, delx, dely, U, V, Re, tau);
-        SETBCOND(U, V, imax, jmax,0, 0, 0, 0);
-        COMP_FG(U, V, F, G, imax, jmax, delt, delx, dely, gx, gy, gamma, Re);
-        COMP_RHS(F, G, RHS, imax, jmax, delt, delx, dely);
-        POISSON(P, RHS, imax, jmax, delx, dely, eps, itermax, omg, res);
-        ADAP_UV(U, V, F, G, P, imax, jmax, delt, delx, dely);
-        n += 1;
-    }
-    
-    cout << "finished in " << n << " steps\n";
-    for (int x : U)
-        cout << x << " ";
-    cout << "\n";
-    for (int x : V)
-        cout << x << " ";
-    cout << "\n";
-    for (int x : P)
-        cout << x << " ";
-    return 0;
+    imax=5;
+    jmax=6;
+    vector<double> U(imax*jmax,UI);
+    vector<double> V(imax*jmax,VI);
+    vector<double> P(imax*jmax,PI);
+    cout << U.size() << V.size() << P.size()<< endl;
+
+    write_parameters("newdatafile.txt",U,V,P,imax,jmax);
+
+//     int n = 0;
+//    double tend = 10;
+//    for (double t = 0; t < tend; t += delt)
+//    {
+//        COMP_DELT(delt, imax, jmax, delx, dely, U, V, Re, tau);
+//        SETBCOND(U, V, imax, jmax,0, 0, 0, 0);
+//        COMP_FG(U, V, F, G, imax, jmax, delt, delx, dely, gx, gy, gamma, Re);
+//        COMP_RHS(F, G, RHS, imax, jmax, delt, delx, dely);
+//        POISSON(P, RHS, imax, jmax, delx, dely, eps, itermax, omg, res);
+//        ADAP_UV(U, V, F, G, P, imax, jmax, delt, delx, dely);
+//        n += 1;
+//    }
+//
+//    cout << "finished in " << n << " steps\n";
+//    for (int x : U)
+//        cout << x << " ";
+//    cout << "\n";
+//    for (int x : V)
+//        cout << x << " ";
+//    cout << "\n";
+//    for (int x : P)
+//        cout << x << " ";
+//    return 0;
 }
