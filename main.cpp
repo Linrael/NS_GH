@@ -2,31 +2,11 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
+#include <string>
 #include "misc.hpp"
 
 using namespace std;
 
-int imax = 5;
-int jmax = 5;
-double xlength = 1.;
-double ylength = 1.;
-double delx = xlength / imax;
-double dely = ylength / jmax;
-vector<double> U;
-vector<double> V;
-vector<double> P;
-double t_end = 5.;
-double delt = 1.;
-double Re;
-double tau;
-vector<double> F;
-vector<double> G;
-vector<double> RHS;
-
-int N;
-int itermax;
-double eps;
-double omega,cgamma,beta,Pr,GX,GY,UI,VI,PI;
 
 vector<double> vector_abs(vector<double> vec)
 {
@@ -39,12 +19,13 @@ vector<double> vector_abs(vector<double> vec)
     return abs;
 }
 
-// void COMP_DELT(double &delt, int imax, int jmax, double delx, double dely, vector<double> U, vector<double> V, double Re, double tau)
-// {
-//     vector<double> U_abs = vector_abs(U);
-//     vector<double> V_abs = vector_abs(V);
-//     delt = tau * min({Re / ((1 / (delx * delx) + 1 / (dely * dely)) * 2), delx / *max_element(U_abs.begin(), U_abs.end()), dely / *max_element(V_abs.begin(), V_abs.end())});
-// }
+void COMP_DELT(double &delt, int imax, int jmax, double delx, double dely, vector<double> &U, vector<double> &V, double Re, double tau)
+{
+    vector<double> U_abs = vector_abs(U);
+    vector<double> V_abs = vector_abs(V);
+    delt = min(delx / *max_element(U_abs.begin(), U_abs.end()), dely / *max_element(V_abs.begin(), V_abs.end()));
+    delt = tau * min(Re / ((1 / (delx * delx) + 1 / (dely * dely)) * 2), delt);
+}   
 
 void SETBCOND(vector<double> &U, vector<double> &V, int imax, int jmax, int wW, int wE, int wN, int wS)
 {
@@ -61,7 +42,7 @@ void SETBCOND(vector<double> &U, vector<double> &V, int imax, int jmax, int wW, 
     }
 }
 
-void COMP_FG(const vector<double> &U, const vector<double> &V, vector<double> &F, vector<double> &G, int imax, int jmax, double delt, double delx, double dely, double gx, double gy, double gamma, double Re)
+void COMP_FG(const vector<double> &U, const vector<double> &V, vector<double> &F, vector<double> &G, int imax, int jmax, double delt, double delx, double dely, double gx, double gy, double cgamma, double Re)
 {
     double d2UdX2, d2UdY2, dU2dX, dUVdY, d2VdX2, d2VdY2, dUVdX, dV2dY;
     for (int i = 1; i <= imax - 1; i++)
@@ -69,13 +50,13 @@ void COMP_FG(const vector<double> &U, const vector<double> &V, vector<double> &F
         {
             dU2dX = ((U[i * (jmax + 2) + j] + U[(i + 1) * (jmax + 2) + j]) * (U[i * (jmax + 2) + j] + U[(i + 1) * (jmax + 2) + j]) -
                      (U[(i - 1) * (jmax + 2) + j] + U[i * (jmax + 2) + j]) * (U[(i - 1) * (jmax + 2) + j] + U[i * (jmax + 2) + j]) +
-                     gamma * (fabs(U[i * (jmax + 2) + j] + U[(i + 1) * (jmax + 2) + j]) * (U[i * (jmax + 2) + j] - U[(i + 1) * (jmax + 2) + j]) -
+                     cgamma * (fabs(U[i * (jmax + 2) + j] + U[(i + 1) * (jmax + 2) + j]) * (U[i * (jmax + 2) + j] - U[(i + 1) * (jmax + 2) + j]) -
                               fabs(U[(i - 1) * (jmax + 2) + j] + U[i * (jmax + 2) + j]) * (U[(i - 1) * (jmax + 2) + j] - U[i * (jmax + 2) + j]))) /
                     (4.0 * delx);
 
             dUVdY = ((V[i * (jmax + 2) + j] + V[(i + 1) * (jmax + 2) + j]) * (U[i * (jmax + 2) + j] + U[i * (jmax + 2) + j + 1]) -
                      (V[i * (jmax + 2) + j - 1] + V[(i + 1) * (jmax + 2) + j - 1]) * (U[i * (jmax + 2) + j - 1] + U[i * (jmax + 2) + j]) +
-                     gamma * (fabs(V[i * (jmax + 2) + j] + V[(i + 1) * (jmax + 2) + j]) * (U[i * (jmax + 2) + j] - U[i * (jmax + 2) + j + 1]) -
+                     cgamma * (fabs(V[i * (jmax + 2) + j] + V[(i + 1) * (jmax + 2) + j]) * (U[i * (jmax + 2) + j] - U[i * (jmax + 2) + j + 1]) -
                               fabs(V[i * (jmax + 2) + j - 1] + V[(i + 1) * (jmax + 2) + j - 1]) * (U[i * (jmax + 2) + j - 1] - U[i * (jmax + 2) + j]))) /
                     (4.0 * dely);
 
@@ -91,13 +72,13 @@ void COMP_FG(const vector<double> &U, const vector<double> &V, vector<double> &F
         {
             dUVdX = ((U[i * (jmax + 2) + j] + U[i * (jmax + 2) + j + 1]) * (V[i * (jmax + 2) + j] + V[(i + 1) * (jmax + 2) + j]) -
                      (U[(i - 1) * (jmax + 2) + j] + U[(i - 1) * (jmax + 2) + j + 1]) * (V[(i - 1) * (jmax + 2) + j] + V[i * (jmax + 2) + j]) +
-                     gamma * (fabs(U[i * (jmax + 2) + j] + U[i * (jmax + 2) + j + 1]) * (V[i * (jmax + 2) + j] - V[(i + 1) * (jmax + 2) + j]) -
+                     cgamma * (fabs(U[i * (jmax + 2) + j] + U[i * (jmax + 2) + j + 1]) * (V[i * (jmax + 2) + j] - V[(i + 1) * (jmax + 2) + j]) -
                               fabs(U[(i - 1) * (jmax + 2) + j] + U[(i - 1) * (jmax + 2) + j + 1]) * (V[(i - 1) * (jmax + 2) + j] - V[i * (jmax + 2) + j]))) /
                     (4.0 * delx);
 
             dV2dY = ((V[i * (jmax + 2) + j] + V[i * (jmax + 2) + j + 1]) * (V[i * (jmax + 2) + j] + V[i * (jmax + 2) + j + 1]) -
                      (V[i * (jmax + 2) + j - 1] + V[i * (jmax + 2) + j]) * (V[i * (jmax + 2) + j - 1] + V[i * (jmax + 2) + j]) -
-                     gamma * (fabs(V[i * (jmax + 2) + j] + V[i * (jmax + 2) + j + 1]) * (V[i * (jmax + 2) + j] - V[i * (jmax + 2) + j + 1]) +
+                     cgamma * (fabs(V[i * (jmax + 2) + j] + V[i * (jmax + 2) + j + 1]) * (V[i * (jmax + 2) + j] - V[i * (jmax + 2) + j + 1]) +
                               fabs(V[i * (jmax + 2) + j - 1] + V[i * (jmax + 2) + j]) * (V[i * (jmax + 2) + j - 1] - V[i * (jmax + 2) + j]))) /
                     (4.0 * dely);
 
@@ -130,7 +111,7 @@ void COMP_RHS(const vector<double> &F, const vector<double> &G, vector<double> &
                                       delt;
 }
 
-int POISSON(vector<double> &P, vector<double> RHS, int imax, int jmax, double delx, double dely, double eps, int itermax, double omg, double &res)
+int POISSON(vector<double> &P, vector<double> RHS, int imax, int jmax, double delx, double dely, double eps, int itermax, double omega, double &res)
 {
     for (int iter = 1; iter <= itermax; iter++)
     {
@@ -152,8 +133,8 @@ int POISSON(vector<double> &P, vector<double> RHS, int imax, int jmax, double de
         for (int i = 1; i <= imax; i++)
             for (int j = 1; j <= jmax; j++)
             {
-                P[i * (jmax + 2) + j] = (1 - omg) * P[i * (jmax + 2) + j] +
-                                        omg *
+                P[i * (jmax + 2) + j] = (1 - omega) * P[i * (jmax + 2) + j] +
+                                        omega *
                                             ((P[(i + 1) * (jmax + 2) + j] + P[(i - 1) * (jmax + 2) + j]) * _dx2 +
                                              (P[i * (jmax + 2) + j + 1] + P[i * (jmax + 2) + j - 1]) * _dy2 -
                                              RHS[i * (jmax + 2) + j]) /
@@ -181,7 +162,7 @@ int POISSON(vector<double> &P, vector<double> RHS, int imax, int jmax, double de
     return itermax;
 }
 
-void ADAP_UV(vector<double> &U, vector<double> V, const vector<double> &F, const vector<double> &G, const vector<double> &P, int imax, int jmax, double delt, double delx, double dely)
+void ADAP_UV(vector<double> &U, vector<double> &V, const vector<double> &F, const vector<double> &G, const vector<double> &P, int imax, int jmax, double delt, double delx, double dely)
 {
     for (int i = 1; i <= imax - 1; i++)
         for (int j = 1; j <= jmax; j++)
@@ -198,10 +179,10 @@ void ADAP_UV(vector<double> &U, vector<double> V, const vector<double> &F, const
 void set_parameters(string fileName, double &xlength, double &ylength, int &imax, int &jmax, double &delx, double &dely,
                double &t_end, double &delt, double &tau, int &N,
                int &itermax, double &eps, double &omega, double &cgamma,
-               double &Re,double &Pr,double &beta,double &GX,double &GY,
+               double &Re,double &Pr,double &beta,double &gx,double &gy,
                double &UI,double &VI,double &PI
 ){
-    double* params = read_parameters(fileName);
+    vector<double> params = read_parameters(fileName);
     xlength=params[0];
     ylength=params[1];
     imax=int(params[2]);
@@ -219,47 +200,65 @@ void set_parameters(string fileName, double &xlength, double &ylength, int &imax
     Re=params[14];
     Pr=params[15];
     beta=params[16];
-    GX=params[17];
-    GY=params[18];
+    gx=params[17];
+    gy=params[18];
     UI=params[19];
     VI=params[20];
     PI=params[21];
-
-
 }
 
 int main()
 {
-    
-    set_parameters("parameterfiles/test1.txt",xlength,ylength,imax,jmax,delx,dely,t_end,delt,tau,N,itermax,eps,omega,cgamma,Re,Pr,beta,GX,GY,UI,VI,PI);
-    cout << xlength << ylength << imax << jmax << delx << dely << t_end << delt<<tau<<N<<itermax<<eps<<omega<<cgamma<<Re<<Pr<<beta<<GX<<GY<< endl;
+    int imax;
+    int jmax;
+    double xlength ;
+    double ylength;
+    double delx ;
+    double dely ;
+    double t_end;
+    double delt;
+    double Re;
+    double tau;
+    vector<double> F((imax+2)*(jmax+2),0.);
+    vector<double> G((imax+2)*(jmax+2),0.);
+    vector<double> RHS((imax+2)*(jmax+2),0.);
+
+    int N; //Number of particle lines
+    int itermax;
+    double eps;
+    double omega,cgamma,beta,Pr,gx,gy,UI,VI,PI,res;
+
+    string outputfile;
+
+    set_parameters("parameterfiles/test1.txt",xlength,ylength,imax,jmax,delx,dely,t_end,delt,tau,N,itermax,eps,omega,cgamma,Re,Pr,beta,gx,gy,UI,VI,PI);
+    cout << xlength << ylength << imax << jmax << delx << dely << t_end << delt<<tau<<N<<itermax<<eps<<omega<<cgamma<<Re<<Pr<<beta<<gx<<gy<< endl;
     cout << UI<< endl;
     cout << VI<<endl;
     cout << PI<<endl;
 
-    imax=5;
-    jmax=6;
+
     vector<double> U((imax+2)*(jmax+2),UI);
     vector<double> V((imax+2)*(jmax+2),VI);
     vector<double> P((imax+2)*(jmax+2),PI);
-    cout << U.size() << V.size() << P.size()<< endl;
 
-    write_parameters("newdatafile.txt",U,V,P,imax,jmax,xlength,ylength);
 
-//     int n = 0;
-//    double tend = 10;
-//    for (double t = 0; t < tend; t += delt)
-//    {
-//        COMP_DELT(delt, imax, jmax, delx, dely, U, V, Re, tau);
-//        SETBCOND(U, V, imax, jmax,0, 0, 0, 0);
-//        COMP_FG(U, V, F, G, imax, jmax, delt, delx, dely, gx, gy, gamma, Re);
-//        COMP_RHS(F, G, RHS, imax, jmax, delt, delx, dely);
-//        POISSON(P, RHS, imax, jmax, delx, dely, eps, itermax, omg, res);
-//        ADAP_UV(U, V, F, G, P, imax, jmax, delt, delx, dely);
-//        n += 1;
-//    }
-//
-//    cout << "finished in " << n << " steps\n";
+    int n = 0;
+    for (double t = 0; t < t_end; t += delt)
+    {
+        cout << t << endl;
+        COMP_DELT(delt, imax, jmax, delx, dely, U, V, Re, tau);
+        SETBCOND(U, V, imax, jmax,0, 0, 0, 0);
+        COMP_FG(U, V, F, G, imax, jmax, delt, delx, dely, gx, gy, cgamma, Re);
+        COMP_RHS(F, G, RHS, imax, jmax, delt, delx, dely);
+        POISSON(P, RHS, imax, jmax, delx, dely, eps, itermax, omega, res);
+        ADAP_UV(U, V, F, G, P, imax, jmax, delt, delx, dely);
+        n += 1;
+    }
+
+    write_parameters("datafiles/newdatafile.txt",U,V,P,imax,jmax,xlength,ylength);
+    cout << "finished in " << n << " steps\n";
+
+
 //    for (int x : U)
 //        cout << x << " ";
 //    cout << "\n";

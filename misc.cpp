@@ -8,13 +8,13 @@
 
 using namespace std;
 
-double* read_parameters(string fileName){
+vector<double> read_parameters(string fileName){
 
     string paramstrings[] = {"xlength","ylength","imax","jmax","delx","dely","t_end","delt","tau","N","itermax","eps","omega","gamma",
                    "Re","Pr","beta","GX","GY","UI","VI","PI"};
     int siz = sizeof(paramstrings)/sizeof(paramstrings[0]);
     cout << siz << endl;
-    double params[siz+1]; //I do not know why this +1 (+2,3 etc. is also possible, but +0 is not) is necessary, but without it, 
+    vector<double> params(siz+1,0); //I do not know why this +1 (+2,3 etc. is also possible, but +0 is not) is necessary, but without it, 
                         // when accessing the array values in the main file in the function "set_parameters",
                         // the last TWO variables VI and PI are not set correctly but instead are some random number close to 0
                         // like 2.21297e-314.
@@ -40,16 +40,16 @@ double* read_parameters(string fileName){
                 if ( (pos = curr_line.find (searchstring, 0)) != string::npos ){
                     curr_line=curr_line.erase(0,length_searchstring);
                     curr_line.erase(remove_if(curr_line.begin(), curr_line.end(), ::isspace), curr_line.end());
-                    cout << searchstring << ": " << curr_line << endl;
+                    cout << searchstring << "= " << curr_line << ";" <<endl;
                     params[i]=stod(curr_line);
-                    cout << params[i] << endl;
+                    // cout << double(params[i]) << endl;
                     break;
                 }
             }
         }
     }
-
-   return params;
+    paramfile.close();
+    return params;
 };
 
 void write_parameters(std::string fileName, vector<double> U, vector<double> V, vector<double> P, int imax, int jmax, double xlength, double ylength){
@@ -61,6 +61,8 @@ void write_parameters(std::string fileName, vector<double> U, vector<double> V, 
         cout << "no file to open";
         return;
     } 
+
+    cout << "file open"<<endl;
 
     outfile << imax << endl;
     outfile << jmax << endl;

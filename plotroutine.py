@@ -8,6 +8,7 @@ imax=int(f.readline())
 jmax=int(f.readline())
 xlength=float(f.readline())
 ylength=float(f.readline())
+print(imax,jmax,xlength,ylength,sep=" ")
 
 U=f.readline().split('/')[:-1]
 U=np.array(U)

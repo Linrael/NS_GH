@@ -13,7 +13,7 @@
 
 #endif /* misc_hpp */
 
-double* read_parameters(std::string fileName);
+std::vector<double> read_parameters(std::string fileName);
 
 void write_parameters(std::string fileName,std::vector<double> U, std::vector<double> V, std::vector<double> P, int imax, int jmax, double xlength, double ylength);
 
