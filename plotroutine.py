@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 
-f=open('newdatafile.txt','r')
+f=open('datafiles/newdatafile.txt','r')
 
 imax=int(f.readline())
 jmax=int(f.readline())
