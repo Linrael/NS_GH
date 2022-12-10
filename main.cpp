@@ -219,9 +219,7 @@ int main()
     double delt;
     double Re;
     double tau;
-    vector<double> F((imax+2)*(jmax+2),0.);
-    vector<double> G((imax+2)*(jmax+2),0.);
-    vector<double> RHS((imax+2)*(jmax+2),0.);
+    
 
     int N; //Number of particle lines
     int itermax;
@@ -236,6 +234,9 @@ int main()
     cout << VI<<endl;
     cout << PI<<endl;
 
+    vector<double> F((imax+2)*(jmax+2),0.);
+    vector<double> G((imax+2)*(jmax+2),0.);
+    vector<double> RHS((imax+2)*(jmax+2),0.);
 
     vector<double> U((imax+2)*(jmax+2),UI);
     vector<double> V((imax+2)*(jmax+2),VI);

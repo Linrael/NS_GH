@@ -4,7 +4,7 @@ imax 50.
 jmax 50.
 delx 0.02
 dely 0.02
-t_end 0.2
+t_end 1.
 delt 0.02
 tau 0.5
 N 0. 
