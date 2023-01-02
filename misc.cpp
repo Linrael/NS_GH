@@ -14,10 +14,7 @@ vector<double> read_parameters(string fileName){
                    "Re","Pr","beta","GX","GY","UI","VI","PI"};
     int siz = sizeof(paramstrings)/sizeof(paramstrings[0]);
     cout << siz << endl;
-    vector<double> params(siz,0); //I do not know why this +1 (+2,3 etc. is also possible, but +0 is not) is necessary, but without it, 
-                        // when accessing the array values in the main file in the function "set_parameters",
-                        // the last TWO variables VI and PI are not set correctly but instead are some random number close to 0
-                        // like 2.21297e-314.
+    vector<double> params(siz,0);
 
    ifstream paramfile;
    paramfile.open(fileName);

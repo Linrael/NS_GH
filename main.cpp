@@ -5,6 +5,20 @@
 #include <string>
 #include "misc.hpp"
 
+//some constant values
+const unsigned char C_B    =  0b0000   /* This cell is an obstacle/boundary cell */
+const unsigned char B_N    =  0b0001   /* This obstacle cell has a fluid cell to the north */
+const unsigned char B_S    =  0b0010   /* This obstacle cell has a fluid cell to the south */
+const unsigned char B_W    =  0b0100   /* This obstacle cell has a fluid cell to the west */
+const unsigned char B_E    =  0b1000   /* This obstacle cell has a fluid cell to the east */
+const unsigned char B_NW   =  (B_N | B_W)
+const unsigned char B_SW   =  (B_S | B_W)
+const unsigned char B_NE   =  (B_N | B_E)
+const unsigned char B_SE   =  (B_S | B_E)
+const unsigned char B_NSEW =  (B_N | B_S | B_E | B_W)
+
+const unsigned char C_F    = 0b10000   /* This cell is a fluid cell */
+
 using namespace std;
 
 
@@ -41,6 +55,232 @@ void SETBCOND(vector<double> &U, vector<double> &V, int imax, int jmax, int wW, 
         U[i * (jmax + 2) + jmax + 1] = 0.5 -U[i * (jmax + 2) + jmax];
     }
 }
+
+void INITFLAG(vector<unsigned char> &flag){
+    /* Mark the north & south boundary cells */
+    for (int i=0; i<=imax+1; i++) {
+        flag[i*(jmax+2)+0]      = 0;
+        flag[i*(jmax+2)+jmax+1] = 0;
+    }
+    /* Mark the east and west boundary cells */
+    for (int j=1; j<=jmax; j++) {
+        flag[0*(jmax+2)+j]      = 0;
+        flag[(imax+1)*(jmax+2)+j] = 0;
+    }
+
+    for (int i=1; i<=imax; i++) {
+        for (int j=1; j<=jmax; j++) {
+            if (!(flag[i*(jmax+2)+j] & C_F)) {
+                if (flag[(i-1)*(jmax+2)+j] & C_F) flag[i*(jmax+2)+j] |= B_W;
+                if (flag[(i+1)*(jmax+2)+j] & C_F) flag[i*(jmax+2)+j] |= B_E;
+                if (flag[i*(jmax+2)+j-1] & C_F) flag[i*(jmax+2)+j] |= B_S;
+                if (flag[i*(jmax+2)+j+1] & C_F) flag[i*(jmax+2)+j] |= B_N;
+            }
+        }
+    }
+}
+
+void SETBCONDnew(vector<double> &U, vector<double> &V, vector<double> &P, vector<unsigned char> &flag, int imax, int jmax, int wW, int wE, int wN, int wS){
+/* The flags wW,wE,wN, and wS can have the values:
+//  1 = slip               2 = no-slip
+//  3 = outflow            4 = periodic
+//  Moreover, no-slip conditions are set at internal obstacle cells
+//  by default.
+*/
+
+switch (wW)
+{
+case 1:
+    for(int j=0;j<=jmax+1;j++){
+        U[0*(jmax+2)+j] = 0.0;
+        V[0*(jmax+2)+j] = V[1*(jmax+2)+j];
+    }
+    break;
+
+case 2:
+    for(int j=0;j<=jmax+1;j++){
+        U[0*(jmax+2)+j] = 0.0;
+        V[0*(jmax+2)+j] = (-1.0)*V[1*(jmax+2)+j];
+    }
+    break;
+
+case 3:
+    for(int j=0;j<=jmax+1;j++){
+        U[0*(jmax+2)+j] = U[1*(jmax+2)+j];
+        V[0*(jmax+2)+j] = V[1*(jmax+2)+j];
+    }
+    break;
+
+case 4:
+    for(int j=0;j<=jmax+1;j++){
+        U[0*(jmax+2)+j] = U[(imax-1)*(jmax+2)+j];
+        V[0*(jmax+2)+j] = V[(imax-1)*(jmax+2)+j];
+        V[1*(jmax+2)+j] = V[imax*(jmax+2)+j];
+        P[1*(jmax+2)+j] = P[imax*(jmax+2)+j];
+    }
+    break;
+}
+
+switch (wE)
+{
+case 1:
+    for(int j=0;j<=jmax+1;j++){
+        U[imax*(jmax+2)+j] = 0.0;         
+        V[(imax+1)*(jmax+2)+j] = V[imax*(jmax+2)+j];
+    }
+    break;
+
+case 2:
+    for(int j=0;j<=jmax+1;j++){
+        U[imax*(jmax+2)+j] = 0.0;
+        V[(imax+1)*(jmax+2)+j] = (-1.0)*V[imax*(jmax+2)+j];
+    }
+    break;
+
+case 3:
+    for(int j=0;j<=jmax+1;j++){
+        U[imax*(jmax+2)+j] = U[(imax-1)*(jmax+2)+j];
+        V[(imax+1)*(jmax+2)+j] = V[imax*(jmax+2)+j];
+    }
+    break;
+
+case 4:
+    for(int j=0;j<=jmax+1;j++){
+        U[imax*(jmax+2)+j] = U[1*(jmax+2)+j];
+        V[(imax+1)*(jmax+2)+j] = V[2*(jmax+2)+j];
+    }
+    break;
+}
+
+switch (wN)
+{
+case 1:
+    for(int i=0;i<=imax+1;i++){
+        V[i*(jmax+2)+jmax] = 0.0;
+        U[i*(jmax+2)+jmax+1] = U[i*(jmax+2)+jmax];
+    }
+    break;
+
+case 2:
+    for(int i=0;i<=imax+1;i++){
+        V[i*(jmax+2)+jmax] = 0.0;
+        U[i*(jmax+2)+jmax+1] = (-1.0)*U[i*(jmax+2)+jmax];
+    }
+    break;
+
+case 3:
+    for(int i=0;i<=imax+1;i++){
+        V[i*(jmax+2)+jmax] = V[i*(jmax+2)+jmax-1];
+        U[i*(jmax+2)+jmax+1] = U[i*(jmax+2)+jmax];
+    }
+    break;
+
+case 4:
+    for(int i=0;i<=imax+1;i++){
+        V[i*(jmax+2)+jmax] = V[i*(jmax+2)+1];
+        U[i*(jmax+2)+jmax+1] = U[i*(jmax+2)+2];
+    }
+    break;
+}
+
+switch (wS)
+{
+case 1:
+    for(int i=0;i<=imax+1;i++){
+        V[i*(jmax+2)+0] = 0.0;
+        U[i*(jmax+2)+0] = U[i*(jmax+2)+1];
+    }
+    break;
+
+case 2:
+    for(int i=0;i<=imax+1;i++){
+        V[i*(jmax+2)+0] = 0.0;
+        U[i*(jmax+2)+0] = (-1.0)*U[i*(jmax+2)+1];
+    }
+    break;
+
+case 3:
+    for(int i=0;i<=imax+1;i++){
+        V[i*(jmax+2)+0] = V[i*(jmax+2)+1];
+        U[i*(jmax+2)+0] = U[i*(jmax+2)+1];
+    }
+    break;
+
+case 4:
+    for(int i=0;i<=imax+1;i++){
+        V[i*(jmax+2)+0] = V[i*(jmax+2)+jmax-1];
+        U[i*(jmax+2)+0] = U[i*(jmax+2)+jmax-1];
+        U[i*(jmax+2)+1] = U[i*(jmax+2)+jmax];
+        P[i*(jmax+2)+1] = P[i*(jmax+2)+jmax];
+    }
+    break;
+}
+
+// Now apply BC for inner cells: (only noslip conditions for inner cells)
+for(int i=1;i<=imax;i++)
+    for(int j=1;j<=jmax;j++)
+        if(FLAG[i][j] & 0b01111)
+//  
+//  The mask 0x000f filters the obstacle cells adjacent to fluid cells.
+//  
+        switch (FLAG[i][j]){
+            case B_N:  {
+		        V[i*(jmax+2)+j]   = 0.0;
+                U[i*(jmax+2)+j]   = -U[i*(jmax+2)+j+1];
+                U[(i-1)*(jmax+2)+j] = -U[(i-1)*(jmax+2)+j+1];
+                break;
+	        }
+            case B_O:  { 
+		        U[i*(jmax+2)+j]   = 0.0;
+                V[i*(jmax+2)+j]   = -V[(i+1)*(jmax+2)+j];
+                V[i*(jmax+2)+j-1] = -V[(i+1)*(jmax+2)+j-1];
+                break;
+	        }
+            case B_S:  { 
+		        V[i*(jmax+2)+j-1] = 0.0;
+                U[i*(jmax+2)+j]   = -U[i*(jmax+2)+j-1];
+                U[(i-1)*(jmax+2)+j] = -U[(i-1)*(jmax+2)+j-1];
+                break;
+	        }
+            case B_W:  { 
+		        U[(i-1)*(jmax+2)+j] = 0.0;
+                V[i*(jmax+2)+j]   = -V[(i-1)*(jmax+2)+j];
+                V[i*(jmax+2)+j-1] = -V[(i-1)*(jmax+2)+j-1];
+                break;
+	        }
+            case B_NO: { 
+		        V[i*(jmax+2)+j]   = 0.0;
+                U[i*(jmax+2)+j]   = 0.0;
+                V[i*(jmax+2)+j-1] = -V[(i+1)*(jmax+2)+-1];
+                U[(i-1)*(jmax+2)+j] = -U[(i-1)*(jmax+2)+j+1];
+                break;
+	        }
+            case B_SO: { 
+		        V[i*(jmax+2)+j-1] = 0.0;
+                U[i*(jmax+2)+j]   = 0.0;
+                V[i*(jmax+2)+j]   = -V[(i+1)*(jmax+2)+j];
+                U[(i-1)*(jmax+2)+j] = -U[(i-1)*(jmax+2)+j-1];
+                break;
+            }
+            case B_SW: { 
+                V[i*(jmax+2)+j-1] = 0.0;
+                U[(i-1)*(jmax+2)+j] = 0.0;
+                V[i*(jmax+2)+j]   = -V[(i-1)*(jmax+2)+j];
+                U[i*(jmax+2)+j]   = -U[i*(jmax+2)+j-1];
+                break;
+	        }
+            case B_NW: { 
+                V[i*(jmax+2)+j]   = 0.0;
+                U[(i-1)*(jmax+2)+j] = 0.0;
+                V[i*(jmax+2)+j-1] = -V[(i-1)*(jmax+2)+j-1];
+                U[i*(jmax+2)+j]   = -U[i*(jmax+2)+j+1];
+                break;
+	        }
+  }
+}
+
+
+
 
 void COMP_FG(const vector<double> &U, const vector<double> &V, vector<double> &F, vector<double> &G, int imax, int jmax, double delt, double delx, double dely, double gx, double gy, double cgamma, double Re)
 {
@@ -207,6 +447,18 @@ void set_parameters(string fileName, double &xlength, double &ylength, int &imax
     PI=params[21];
 }
 
+void SIMPLEGEOMETRY(vector<unsigned char> &FLAG, int i1, int i2, int j1, int j2, int imax, int jmax){
+    if(i1<1 || j1<1 || i2>imax-1 || j2>jmax-1){
+        cout << "FEHLER IN GEOMETRY" << endl;
+        return;
+    }
+    for(int i=i1;i<=i2;i++){
+        for(int j=j1;j<=j2;j++){
+            FLAG[i*(jmax+2)+j]=0;
+        }
+    }
+}
+
 int main()
 {
     int imax;
@@ -241,6 +493,9 @@ int main()
     vector<double> U((imax+2)*(jmax+2),UI);
     vector<double> V((imax+2)*(jmax+2),VI);
     vector<double> P((imax+2)*(jmax+2),PI);
+    vector<unsigned char> flag((imax+2)*(jmax+2),0b1_0000);
+
+    SIMPLEGEOMETRY(FLAG,1,10,1,10,imax,jmax)
 
 
     int n = 0;
