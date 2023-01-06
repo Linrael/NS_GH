@@ -4,6 +4,7 @@
 #include <cmath>
 #include <string>
 #include "misc.hpp"
+#include <math.h>
 
 // some constant values
 const unsigned char C_B = 0b0000; /* This cell is an obstacle/boundary cell */
@@ -312,6 +313,11 @@ void SETBCONDnew(vector<double> &U, vector<double> &V, vector<double> &P, vector
                     break;
                 }
                 }
+
+                //inflow from the left
+                for(int j=0;j<=jmax+1;j++){
+                    U[j]=1.;
+                }
 }
 
 void COMP_FG(const vector<double> &U, const vector<double> &V, vector<double> &F, vector<double> &G, vector<unsigned char> &FLAG, int imax, int jmax, double delt, double delx, double dely, double gx, double gy, double cgamma, double Re)
@@ -566,6 +572,15 @@ void SIMPLEGEOMETRY(vector<unsigned char> &FLAG, int i1, int i2, int j1, int j2,
     }
 }
 
+void trichter(vector<unsigned char> &FLAG, int linkeoeffnung, int rechteoeffnung, int imax, int jmax){
+    int differenz = abs(linkeoeffnung-rechteoeffnung)
+    if(differenz%2==1):
+        differenz--;
+    int steigung = int(floor(imax/differenz))
+
+    for( int i =0;i++;i<)
+}
+
 int main()
 {
     int imax;
@@ -578,6 +593,7 @@ int main()
     double delt;
     double Re;
     double tau;
+    char problem;
 
     int N; // Number of particle lines
     int itermax;
@@ -601,8 +617,28 @@ int main()
     vector<double> P((imax + 2) * (jmax + 2), PI);
     vector<unsigned char> FLAG((imax + 2) * (jmax + 2), 0b10000);
 
-    SIMPLEGEOMETRY(FLAG, 40, 50, 40, 50, imax, jmax);
+    switch (problem)
+    {
+    case 0: //square in the middle
+        SIMPLEGEOMETRY(FLAG, 40, 50, 40, 50, imax, jmax);
+        break;
+    case 1: //square bottom left corner
+        
+        break;
+    case 2: // Trichter
+        
+        break;
+    case 3: //t.b.d.
+        trichter(FLAG,90,50,imax,jmax);
+        break;
+    
+    default:
+        break;
+    }
+    
     INITFLAG(FLAG, imax, jmax);
+    
+    write_parameters("datafiles/newdatafile.txt", U, V, P,FLAG, imax, jmax, xlength, ylength);
 
     int n = 0;
     for (double t = 0; t < t_end; t += delt)
@@ -618,16 +654,20 @@ int main()
         */
 
         COMP_DELT(delt, imax, jmax, delx, dely, U, V, Re, tau);
-        SETBCONDnew(U, V, P, FLAG, imax, jmax, 0, 0, 0, 0);
+        SETBCONDnew(U, V, P, FLAG, imax, jmax, 3, 3, 2, 2);
         COMP_FG(U, V, F, G, FLAG, imax, jmax, delt, delx, dely, gx, gy, cgamma, Re);
         COMP_RHS(F, G, RHS, FLAG, imax, jmax, delt, delx, dely);
         POISSON(P, RHS, FLAG, imax, jmax, delx, dely, eps, itermax, omega, res);
         ADAP_UV(U, V, F, G, P, FLAG, imax, jmax, delt, delx, dely);
 
         n += 1;
+        if(n % 100 == 0){
+            write_data("datafiles/newdatafile.txt",U,V,P,n);
+        }
     }
 
-    write_parameters("datafiles/newdatafile.txt", U, V, P, imax, jmax, xlength, ylength);
+    write_data("datafiles/newdatafile.txt",U,V,P,n);
+
     cout << "finished in " << n << " steps\n";
 
     //    for (int x : U)

@@ -49,7 +49,7 @@ vector<double> read_parameters(string fileName){
     return params;
 };
 
-void write_parameters(std::string fileName, vector<double> U, vector<double> V, vector<double> P, int imax, int jmax, double xlength, double ylength){
+void write_parameters(std::string fileName, vector<double> U, vector<double> V, vector<double> P, vector<unsigned char> FLAG,int imax, int jmax, double xlength, double ylength){
 
     ofstream outfile;
     outfile.open(fileName);
@@ -79,6 +79,44 @@ void write_parameters(std::string fileName, vector<double> U, vector<double> V, 
     for(int i=0;i<P.size();i++){
        outfile << P[i] << "/";
     }
+    outfile << endl;
+
+    for(int i=0;i<FLAG.size();i++){
+       outfile << int(FLAG[i]) << "/";
+    }
+
+    outfile << endl;
+
+
+}
+
+void write_data(std::string fileName, vector<double> U, vector<double> V, vector<double> P, int timesteps){
+    ofstream outfile;
+    outfile.open(fileName, std::ios_base::app);
+
+    if(!outfile){
+        cout << "no file to open";
+        return;
+    } 
+
+    cout << "file open"<<endl;
+
+    outfile << timesteps << endl;
+
+    for(int i=0;i<U.size();i++){
+       outfile << U[i] << "/";
+    }
+    outfile<< endl;
+
+    for(int i=0;i<V.size();i++){
+       outfile << V[i] << "/";
+    }
+    outfile<< endl;
+
+    for(int i=0;i<P.size();i++){
+       outfile << P[i] << "/";
+    }
+    outfile << endl;
 
 }
 

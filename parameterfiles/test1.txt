@@ -1,11 +1,11 @@
 xlength 1.
 ylength 1.
-imax 50.
-jmax 50.
-delx 0.02
-dely 0.02
+imax 100.
+jmax 100.
+delx 0.01
+dely 0.01
 t_end 1.
-delt 0.02
+delt 0.01
 tau 0.5
 N 0. 
 itermax 100.
