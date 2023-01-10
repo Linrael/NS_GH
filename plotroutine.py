@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 
 f = open('datafiles/newdatafile.txt', 'r')
 
-#read parameters
+# read parameters
 
 imax = int(f.readline())
 jmax = int(f.readline())
@@ -11,7 +11,7 @@ xlength = float(f.readline())
 ylength = float(f.readline())
 print(imax, jmax, xlength, ylength, sep=" ")
 
-#initial fields
+# initial fields
 
 U = f.readline().split('/')[:-1]
 U = np.array(U)
@@ -28,25 +28,33 @@ P = np.array(P)
 P = P.astype(np.double).reshape(imax + 2, jmax + 2)
 P = np.swapaxes(P, 0, 1)
 
-#geometry
+# geometry
 
-FLAG =  f.readline().split('/')[:-1]
-FLAG=np.array(FLAG).astype(np.double)
-malen= [1. if x==16 else 0. for x in FLAG]
-malen=np.array(malen).reshape(imax + 2, jmax + 2).astype(np.double)
+FLAG = f.readline().split('/')[:-1]
+FLAG = np.array(FLAG).astype(np.double)
+malen = [1. if x == 16 else 0. for x in FLAG]
+malen = np.array(malen).reshape(imax + 2, jmax + 2).astype(np.double)
 malen = np.swapaxes(malen, 0, 1)
-konvertieren = np.zeros((imax+2,jmax+2,3))
-konvertieren[malen>0.5]=[1,1,1]
-konvertieren[malen<0.5]=[0,0,0]
+konvertieren = np.zeros((imax + 2, jmax + 2, 3))
+konvertieren[malen > 0.5] = [1, 1, 1]
+konvertieren[malen < 0.5] = [0, 0, 0]
+
 malfig, malax = plt.subplots()
-malax.imshow(konvertieren,interpolation='nearest')
+malax.imshow(konvertieren, interpolation='nearest')
 malax.set_title("Geometry")
 plt.show()
-
 
 X = np.arange(0, xlength + 1.1 * xlength / imax, xlength / imax)
 Y = np.arange(0, ylength + 1.1 * ylength / jmax, ylength / jmax)
 X, Y = np.meshgrid(X, Y)
+
+# X = np.arange(0, 8, 1)
+# Y = np.arange(50, 60, 1)
+# X, Y = np.meshgrid(X, Y)
+# print(X)
+# # print(Y)
+# print('\n\n')
+# print(X[::2, ::2])
 
 # fig, ax = plt.subplots()
 # ax.streamplot(X, Y, U, V, color=U, linewidth=2, cmap='autumn')
@@ -58,34 +66,28 @@ X, Y = np.meshgrid(X, Y)
 # plt.show()
 
 # now read additional data
-ind=20 #jeder 4. datenpunkte wird geplottet
-plot_number=4
+ind = 20  # jeder 4. datenpunkte wird geplottet
+plot_number = 4
 while True:
 
-    line=f.readline()
+    line = f.readline()
     if not line:
         break
-    timestep=int(line)
-    U=np.swapaxes(np.array(f.readline().split('/')[:-1]).astype(np.double).reshape(imax + 2, jmax + 2), 0, 1)
-    V=np.swapaxes(np.array(f.readline().split('/')[:-1]).astype(np.double).reshape(imax + 2, jmax + 2), 0, 1)
-    P=np.swapaxes(np.array(f.readline().split('/')[:-1]).astype(np.double).reshape(imax + 2, jmax + 2), 0, 1)
-    if plot_number%4==0:
+    timestep = int(line)
+    U = np.swapaxes(np.array(f.readline().split('/')[:-1]).astype(np.double).reshape(imax + 2, jmax + 2), 0, 1)
+    V = np.swapaxes(np.array(f.readline().split('/')[:-1]).astype(np.double).reshape(imax + 2, jmax + 2), 0, 1)
+    P = np.swapaxes(np.array(f.readline().split('/')[:-1]).astype(np.double).reshape(imax + 2, jmax + 2), 0, 1)
+    if plot_number % 4 == 0:
         fig, ax = plt.subplots()
-        ax.streamplot(X[::ind], Y[::ind], U[::ind], V[::ind], color=U[::ind], linewidth=2, cmap='autumn')
+        ax.streamplot(X[::ind, ::ind], Y[::ind, ::ind], U[::ind, ::ind], V[::ind, ::ind], color=U[::ind, ::ind], linewidth=2, cmap='autumn')
         ax.set_title(f'U V Stream Plot at {timestep}')
         plt.show()
 
         fig, ax = plt.subplots()
-        ax.quiver(X[::ind], Y[::ind], U[::ind], V[::ind])
+        ax.quiver(X[::ind, ::ind], Y[::ind, ::ind], U[::ind, ::ind], V[::ind, ::ind])
         ax.set_title(f'U V Quiver Plot at {timestep}')
         plt.show()
-    plot_number=plot_number+1
-
-
-
-
-
-
+    plot_number = plot_number + 1
 
 # to save all data use this:
 # U=[]
