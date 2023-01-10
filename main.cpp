@@ -5,6 +5,8 @@
 #include <string>
 #include "misc.hpp"
 #include <math.h>
+#include <chrono>
+#include <ctime>
 
 // some constant values
 const unsigned char C_B = 0b0000; /* This cell is an obstacle/boundary cell */
@@ -470,6 +472,7 @@ int POISSON(vector<double> &P, vector<double> RHS, vector<unsigned char> &FLAG, 
                     }
 
         // for all fluid cells
+        //#pragma omp parallel for
         for (int i = 1; i <= imax; i++)
             for (int j = 1; j <= jmax; j++)
             {
@@ -572,13 +575,61 @@ void SIMPLEGEOMETRY(vector<unsigned char> &FLAG, int i1, int i2, int j1, int j2,
     }
 }
 
-void trichter(vector<unsigned char> &FLAG, int linkeoeffnung, int rechteoeffnung, int imax, int jmax){
-    int differenz = abs(linkeoeffnung-rechteoeffnung)
-    if(differenz%2==1):
-        differenz--;
-    int steigung = int(floor(imax/differenz))
+//returns k evenly spaced integers from a sequence of n consecutive integers
+vector<int> koutofn(int k, int n){
+    vector<int> ret(k,0);
+    for(int i=0; i<k;i++){
+        ret[i]=floor(i*n/k)+floor(n/(2*k));
+    }
+    return ret;
+}
 
-    for( int i =0;i++;i<)
+void trichter(vector<unsigned char> &FLAG, int linkegrenze, int rechtegrenze, string seite, int imax, int jmax){
+    int differenz = abs(linkegrenze-rechtegrenze);
+    if(differenz==0){
+        cout<< "bitte simplegeometry nutzen"<<endl;
+        return;
+    }
+    int steigung = int(floor(imax/differenz));
+    int zuwenig = imax-steigung*differenz;
+    int abstand_zur_seite= abs(jmax-linkegrenze);
+
+    vector<int> schritte_bis_einshoch(differenz,steigung);
+
+    if(!(zuwenig==0)){
+        vector<int> muss_eins_dazu = koutofn(zuwenig,differenz);
+        vector<int> schritte_bis_einshoch(differenz,0);
+        int j=0;
+        for(int i=0;i<differenz;i++){
+            if(i==muss_eins_dazu[j]){
+                schritte_bis_einshoch[i]++;
+                j++;
+                }
+        }
+    }
+    cout << 11 << endl;
+
+    int x=1;
+    int x_current=x;
+    int y_height=0;
+    int index=0;
+    for(index=0;index<differenz;index++){
+        for(x_current=x;(x_current<x+schritte_bis_einshoch[index])&&(x_current<=imax);x_current++){
+                if(seite=="oben"){
+                    for(int j=0;j<=y_height+abstand_zur_seite;j++){
+                    FLAG[x_current*(jmax+2)+j+1]=0;
+                    }
+                } else if(seite=="unten"){
+                    for(int j=0;j<=y_height+(jmax-abstand_zur_seite);j++){
+                    FLAG[(x_current+1)*(jmax+2)-j-1]=0;
+                    }
+                }else{
+                cout<< "sinnlos";
+                };
+        }
+        x=x_current;
+        y_height++;
+    }
 }
 
 int main()
@@ -593,7 +644,7 @@ int main()
     double delt;
     double Re;
     double tau;
-    char problem;
+    char problem=1;
 
     int N; // Number of particle lines
     int itermax;
@@ -623,13 +674,14 @@ int main()
         SIMPLEGEOMETRY(FLAG, 40, 50, 40, 50, imax, jmax);
         break;
     case 1: //square bottom left corner
-        
+        SIMPLEGEOMETRY(FLAG,1,80,1,60,imax,jmax);
         break;
     case 2: // Trichter
-        
+        trichter(FLAG,90,70,"oben",imax,jmax);
+        trichter(FLAG,10,30,"unten",imax,jmax);
         break;
     case 3: //t.b.d.
-        trichter(FLAG,90,50,imax,jmax);
+
         break;
     
     default:
@@ -639,6 +691,7 @@ int main()
     INITFLAG(FLAG, imax, jmax);
     
     write_parameters("datafiles/newdatafile.txt", U, V, P,FLAG, imax, jmax, xlength, ylength);
+    int t1= time(0);
 
     int n = 0;
     for (double t = 0; t < t_end; t += delt)
@@ -661,10 +714,13 @@ int main()
         ADAP_UV(U, V, F, G, P, FLAG, imax, jmax, delt, delx, dely);
 
         n += 1;
-        if(n % 100 == 0){
+        if(n % 200 == 0){
             write_data("datafiles/newdatafile.txt",U,V,P,n);
         }
     }
+    int t2= time(0);
+    int dur=t2-t1;
+    cout << dur<<  endl;
 
     write_data("datafiles/newdatafile.txt",U,V,P,n);
 
