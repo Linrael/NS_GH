@@ -79,7 +79,7 @@ while True:
     P = np.swapaxes(np.array(f.readline().split('/')[:-1]).astype(np.double).reshape(imax + 2, jmax + 2), 0, 1)
     if plot_number % 4 == 0:
         fig, ax = plt.subplots()
-        ax.streamplot(X[::ind, ::ind], Y[::ind, ::ind], U[::ind, ::ind], V[::ind, ::ind], color=U[::ind, ::ind], linewidth=2, cmap='autumn')
+        ax.streamplot(X, Y, U, V, color=U, linewidth=2, cmap='autumn')
         ax.set_title(f'U V Stream Plot at {timestep}')
         plt.show()
 
