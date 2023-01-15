@@ -4,7 +4,7 @@ imax 100.
 jmax 100.
 delx 0.01
 dely 0.01
-t_end 1.
+t_end 0.25
 delt 0.01
 tau 0.5
 N 0. 
@@ -12,7 +12,7 @@ itermax 100.
 eps 0.001
 omega 1.7
 gamma 0.9
-Re 100.
+Re 20.
 Pr 1.0
 beta 0.
 GX 0.
