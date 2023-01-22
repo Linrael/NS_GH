@@ -49,7 +49,8 @@ vector<double> read_parameters(string fileName){
     return params;
 };
 
-void write_parameters(std::string fileName, vector<double> U, vector<double> V, vector<double> P, vector<unsigned char> FLAG,int imax, int jmax, double xlength, double ylength){
+void write_parameters(std::string fileName, vector<double> U, vector<double> V, vector<double> P, vector<unsigned char> FLAG,
+                 int imax, int jmax, double xlength, double ylength, double delt) {
 
     ofstream outfile;
     outfile.open(fileName);
@@ -65,6 +66,7 @@ void write_parameters(std::string fileName, vector<double> U, vector<double> V, 
     outfile << jmax << endl;
     outfile << xlength << endl;
     outfile << ylength << endl;
+    outfile << delt << endl;
 
     for(int i=0;i<U.size();i++){
        outfile << U[i] << "/";
