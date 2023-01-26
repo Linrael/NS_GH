@@ -1,9 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-f = open('datafiles/liddrivencavity50.txt', 'r')
-seconds=8
-skipsteps=10
+f = open('finaldata/liddrivencavity50.txt', 'r')
+seconds=50
+skipsteps=100
 delt=0.001
 
 imax50 = int(f.readline())
@@ -33,7 +33,7 @@ for i in range(timesteps50):
 
 f.close()
 
-g = open('datafiles/liddrivencavity100.txt', 'r')
+g = open('finaldata/liddrivencavity100.txt', 'r')
 
 imax100 = int(g.readline())
 jmax100 = int(g.readline())
@@ -60,7 +60,7 @@ for i in range(timesteps100):
 
 g.close()
 
-h = open('datafiles/liddrivencavity200.txt', 'r')
+h = open('finaldata/liddrivencavity200.txt', 'r')
 
 imax200 = int(h.readline())
 jmax200 = int(h.readline())
@@ -87,10 +87,10 @@ for i in range(timesteps200):
 
 h.close()
 
-difftop = u50 - u100[:, ::2, ::2]
-diffbot = u100[:, ::2, ::2] - u200[:, ::4, ::4]
+difftop = u50[1:,:,:] - u100[1:, ::2, ::2]
+diffbot = u100[1:, ::2, ::2] - u200[1:, ::4, ::4]
 qvalue = np.linalg.norm(difftop, axis=(1, 2)) / np.linalg.norm(diffbot, axis=(1, 2))
 
 fig, ax = plt.subplots()
-ax.plot(timesteps_array50 * delt50, qvalue)
+ax.plot((timesteps_array50 * delt50)[1:], qvalue)
 plt.show()

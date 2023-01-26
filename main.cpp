@@ -118,6 +118,7 @@ void SETBCONDnew(vector<double> &U, vector<double> &V, vector<double> &P, vector
         }
     }
 
+
     switch (wW) {
         case 1:
             for (int j = 0; j <= jmax + 1; j++) {
@@ -243,10 +244,11 @@ void SETBCONDnew(vector<double> &U, vector<double> &V, vector<double> &P, vector
     }
 
     if(problem == 3){
-        for (int i = 1; i <= imax; ++i){
+        for (int i = 0; i <= imax+1; ++i){
             U[i*(jmax+2)+jmax+1]=1-U[i*(jmax+2)+jmax];
-        }
+        }//U[i * (jmax + 2) + jmax + 1] = (-1.0) * U[i * (jmax + 2) + jmax];
     };
+
 
 
     // Now apply BC for inner cells: (only noslip conditions for inner cells)
@@ -408,10 +410,13 @@ void COMP_RHS(const vector<double> &F, const vector<double> &G, vector<double> &
 }
 
 int POISSON(vector<double> &P, vector<double> RHS, vector<unsigned char> &FLAG, int imax, int jmax, double delx,
-            double dely, double eps, int itermax, double omega, double &res) {
-    for (int iter = 1; iter <= itermax; iter++) {
-        double _dx2 = 1 / (delx * delx);
-        double _dy2 = 1 / (dely * dely);
+            double dely, double eps, int itermax, double omega, double &res, double t) {
+    int iter;
+    double _dx2,_dy2;
+//    vector<double> atemp(imax * jmax, 0);
+    for (iter = 1; iter <= itermax; iter++) {
+        _dx2 = 1 / (delx * delx);
+        _dy2 = 1 / (dely * dely);
 
         // external boundaries see eq 3.41
         for (int j = 1; j <= jmax; j++) {
@@ -484,21 +489,52 @@ int POISSON(vector<double> &P, vector<double> RHS, vector<unsigned char> &FLAG, 
         for (int i = 1; i <= imax; i++)
             for (int j = 1; j <= jmax; j++) {
                 if (FLAG[i * (jmax + 2) + j] & C_F) {
+//                    atemp[(i - 1) * jmax + j] = (P[(i + 1) * (jmax + 2) + j] - P[i * (jmax + 2) + j] -
+//                                                 P[i * (jmax + 2) + j] + P[(i - 1) * (jmax + 2) + j]) *
+//                                                _dx2 +
+//                                                (P[i * (jmax + 2) + j + 1] - P[i * (jmax + 2) + j] -
+//                                                 P[i * (jmax + 2) + j] - P[i * (jmax + 2) + j - 1]) *
+//                                                _dy2;
+
                     sum = (P[(i + 1) * (jmax + 2) + j] - P[i * (jmax + 2) + j] -
-                           P[i * (jmax + 2) + j] + P[(i - 1) * (jmax + 2) + j]) *
-                          _dx2 +
-                          (P[i * (jmax + 2) + j + 1] - P[i * (jmax + 2) + j] -
-                           P[i * (jmax + 2) + j] - P[i * (jmax + 2) + j - 1]) *
-                          _dy2 -
-                          RHS[i * (jmax + 2) + j];
+                        P[i * (jmax + 2) + j] + P[(i - 1) * (jmax + 2) + j]) *
+                       _dx2 +
+                       (P[i * (jmax + 2) + j + 1] - P[i * (jmax + 2) + j] -
+                        P[i * (jmax + 2) + j] + P[i * (jmax + 2) + j - 1]) *
+                       _dy2 - RHS[i * (jmax + 2) + j];
                     res += sum * sum;
                     ij++;
                 }
             }
         res = sqrt(res / ij);
-        if (res < eps)
+        if (res < eps) {
+            cout << iter << endl;
             return iter;
+        }
     }
+//    if (t > 0.7) {
+//        cout << res << " ; " << iter << endl;
+//        int counter = 0;
+//        for (int myloop = 0; myloop < imax * jmax; myloop++) {
+//            if (myloop % jmax == 0) {
+//                counter++;
+//                cout << endl;
+//                cout << "P" << counter << ": ";
+//            }
+//            cout << atemp[myloop] << " ";
+//        }
+//        counter = 0;
+//        for (int myloop = 0; myloop < imax * jmax; myloop++) {
+//            if (myloop % jmax == 0) {
+//                counter++;
+//                cout << endl;
+//                cout << "rhs" << counter << ": ";
+//
+//            }
+//            cout << btemp[myloop] << " ";
+//        }
+//    }
+    cout << res << " ; " << iter << endl;
     return itermax;
 }
 
@@ -691,7 +727,7 @@ int main() {
 
     INITFLAG(FLAG, imax, jmax);
 
-    write_parameters("datafiles/liddrivencavity200.txt", U, V, P, FLAG, imax, jmax, xlength, ylength, delt);
+    write_parameters("finaldata/liddrivencavity200.txt", U, V, P, FLAG, imax, jmax, xlength, ylength, delt);
     int t1 = time(0);
 
     int n = 0;
@@ -710,19 +746,19 @@ int main() {
         SETBCONDnew(U, V, P, FLAG, imax, jmax, wW, wE, wN, wS, problem);
         COMP_FG(U, V, F, G, FLAG, imax, jmax, delt, delx, dely, gx, gy, cgamma, Re);
         COMP_RHS(F, G, RHS, FLAG, imax, jmax, delt, delx, dely);
-        POISSON(P, RHS, FLAG, imax, jmax, delx, dely, eps, itermax, omega, res);
+        POISSON(P, RHS, FLAG, imax, jmax, delx, dely, eps, itermax, omega, res, t);
         ADAP_UV(U, V, F, G, P, FLAG, imax, jmax, delt, delx, dely);
 
         n += 1;
-        if (n % 25 == 0) {
-            write_data("datafiles/liddrivencavity200.txt", U, V, P, n);
+        if (n % 100 == 0) {
+            write_data("finaldata/liddrivencavity200.txt", U, V, P, n);
         }
     }
     int t2 = time(0);
     int dur = t2 - t1;
     cout << dur << endl;
 
-    write_data("datafiles/liddrivencavity200.txt", U, V, P, n);
+    write_data("finaldata/liddrivencavity200.txt", U, V, P, n);
 
     cout << "finished in " << n << " steps\n";
 

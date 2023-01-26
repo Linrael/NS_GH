@@ -4,11 +4,11 @@ imax 200.
 jmax 200.
 delx 0.01
 dely 0.01
-t_end 20.
-delt 0.01
+t_end 100.
+delt 0.001
 tau 0.5
 N 0. 
-itermax 100.
+itermax 20000.
 eps 0.001
 omega 1.7
 gamma 0.9
