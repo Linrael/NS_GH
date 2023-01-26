@@ -685,12 +685,13 @@ int main() {
     double tau;
     char problem = 4;
 
+    string inputfile="parameterfiles/test1.txt";
+    string outputfile="finaldata/liddrivencavity200.txt";
+
     int N; // Number of particle lines
     int itermax;
     double eps;
     double omega, cgamma, beta, Pr, gx, gy, UI, VI, PI, res;
-
-    string outputfile;
 
     set_parameters("parameterfiles/test1.txt", xlength, ylength, imax, jmax, delx, dely, t_end, delt, tau, N,
                    itermax, eps, omega, cgamma, Re, Pr, beta, gx, gy, UI, VI, PI);
@@ -754,7 +755,7 @@ int main() {
 
     INITFLAG(FLAG, imax, jmax);
 
-    write_parameters("finaldata/liddrivencavity200.txt", U, V, P, FLAG, imax, jmax, xlength, ylength, delt);
+    write_parameters(outputfile, U, V, P, FLAG, imax, jmax, xlength, ylength, delt);
     int t1 = time(0);
 
     int n = 0;
@@ -778,14 +779,14 @@ int main() {
 
         n += 1;
         if (n % 100 == 0) {
-            write_data("finaldata/liddrivencavity200.txt", U, V, P, n);
+            write_data(outputfile, U, V, P, n);
         }
     }
     int t2 = time(0);
     int dur = t2 - t1;
     cout << dur << endl;
 
-    write_data("finaldata/liddrivencavity200.txt", U, V, P, n);
+    write_data(outputfile, U, V, P, n);
 
     cout << "finished in " << n << " steps\n";
 
