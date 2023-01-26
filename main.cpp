@@ -113,7 +113,14 @@ void SETBCONDnew(vector<double> &U, vector<double> &V, vector<double> &P, vector
     */
     if (problem == 1) {
         //inflow from the left for upper half
-        for (int j = 0.5 * jmax; j <= jmax + 1; j++) {
+        for (int j = int(0.5 * jmax); j <= jmax + 1; j++) {
+            U[1 * (jmax + 2) + j] = 1.;
+        }
+    }
+
+    if (problem == 4) {
+        //inflow from the left
+        for (int j = floor(jmax/5); j <= jmax - floor(3*jmax/5); j++) {
             U[1 * (jmax + 2) + j] = 1.;
         }
     }
@@ -585,7 +592,7 @@ void set_parameters(string fileName, double &xlength, double &ylength, int &imax
 }
 
 void SIMPLEGEOMETRY(vector<unsigned char> &FLAG, int i1, int i2, int j1, int j2, int imax, int jmax) {
-    if (i1 < 1 || j1 < 1 || i2 > imax - 1 || j2 > jmax - 1) {
+    if (i1 < 1 || j1 < 1 || i2 > imax || j2 > jmax) {
         cout << "FEHLER IN GEOMETRY" << endl;
         return;
     }
@@ -594,6 +601,19 @@ void SIMPLEGEOMETRY(vector<unsigned char> &FLAG, int i1, int i2, int j1, int j2,
             FLAG[i * (jmax + 2) + j] = C_B;
         }
     }
+}
+
+void roehren(vector<unsigned char> &FLAG, int imax, int jmax){
+    int inout_i = floor(imax/4);
+    int small_j = floor(jmax/5);
+    int large_j = floor(3*jmax/5);
+    int diameter = floor(min(imax, jmax) / 5);
+    
+    SIMPLEGEOMETRY(FLAG, 1, inout_i, 1, small_j, imax, jmax);
+    SIMPLEGEOMETRY(FLAG, 1, inout_i, jmax-large_j, jmax, imax, jmax);
+    SIMPLEGEOMETRY(FLAG, inout_i + diameter, imax - inout_i - diameter, diameter, jmax - diameter, imax, jmax);
+    SIMPLEGEOMETRY(FLAG, imax - inout_i, imax, 1, large_j, imax, jmax);
+    SIMPLEGEOMETRY(FLAG, imax - inout_i, imax, jmax - small_j, jmax, imax, jmax);
 }
 
 vector<int> koutofn(int k, int n) {
@@ -663,7 +683,7 @@ int main() {
     double delt;
     double Re;
     double tau;
-    char problem = 3;
+    char problem = 4;
 
     int N; // Number of particle lines
     int itermax;
@@ -672,7 +692,7 @@ int main() {
 
     string outputfile;
 
-    set_parameters("parameterfiles/liddrivencavity.txt", xlength, ylength, imax, jmax, delx, dely, t_end, delt, tau, N,
+    set_parameters("parameterfiles/test1.txt", xlength, ylength, imax, jmax, delx, dely, t_end, delt, tau, N,
                    itermax, eps, omega, cgamma, Re, Pr, beta, gx, gy, UI, VI, PI);
     cout << xlength << ylength << imax << jmax << delx << dely << t_end << delt << tau << N << itermax << eps << omega
          << cgamma << Re << Pr << beta << gx << gy << endl;
@@ -717,6 +737,13 @@ int main() {
         case 3: //Self Convergence Lid Driven Cavity
             wW=2;
             wE=2;
+            wN=2;
+            wS=2;
+            break;
+        case 4: // Röhre
+            roehren(FLAG, imax, jmax);
+            wW=3;
+            wE=3;
             wN=2;
             wS=2;
             break;
