@@ -61,19 +61,14 @@ X, Y = np.meshgrid(X, Y)
 # Xsmall2 = X[int(startx * imax):int(endx * imax), int(starty * jmax):int(endy * jmax)]
 # Ysmall = Y[int(startx * imax):int(endx * imax), int(starty * jmax):int(endy * jmax)]
 # print(Xsmall2.shape)
-print(Y.shape)
 
 Xsmall = np.arange(startx, endx, xlength/imax)
 Ysmall = np.arange(starty, endy, ylength/jmax)
 Xsmall, Ysmall = np.meshgrid(Xsmall, Ysmall)
 print(Ysmall.shape)
 # now read additional data
-
-tz = 0
 while True:
     line = f.readline()
-    # if tz == 2:
-    #     break
     if not line:
         break
     timestep = int(line)
@@ -81,8 +76,8 @@ while True:
     V = np.swapaxes(np.array(f.readline().split('/')[:-1]).astype(np.double).reshape(imax + 2, jmax + 2), 0, 1)
     P = np.swapaxes(np.array(f.readline().split('/')[:-1]).astype(np.double).reshape(imax + 2, jmax + 2), 0, 1)
     # choose choatic part:
-    U = U[int(starty / ylength * jmax) + 1: int(endy / ylength * jmax) + 1, int(startx / xlength * imax) + 1: int(endx / xlength * imax) + 2]
-    V = V[int(starty / ylength * jmax) + 1: int(endy / ylength * jmax) + 1, int(startx / xlength * imax) + 1: int(endx / xlength * imax) + 2]
+    U = U[int(starty / ylength * jmax) + 1: int(endy / ylength * jmax) + 1, int(startx / xlength * imax) + 1: int(endx / xlength * imax) + 1]
+    V = V[int(starty / ylength * jmax) + 1: int(endy / ylength * jmax) + 1, int(startx / xlength * imax) + 1: int(endx / xlength * imax) + 1]
     # maskedP = np.ma.array(P, mask=fluid_flag)
     # maskedP = maskedP[1:-1, :]
     # maskedP = maskedP[int(starty / ylength * jmax) + 1: int(endy / ylength * jmax) + 1, int(startx / xlength * imax) + 1: int(endx / xlength * imax) + 1]
@@ -96,6 +91,5 @@ while True:
     # ax.imshow(konvertieren, extent=[startx * xlength, endx * xlength, starty * ylength, endy * ylength], interpolation='nearest')
     # ax.imshow(maskedP, extent=[startx, endx, starty, endy])
     plt.show()
-    tz += 1
 
     # 11.036 seconds is last data for bs
