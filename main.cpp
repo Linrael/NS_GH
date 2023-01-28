@@ -686,14 +686,14 @@ int main() {
     char problem = 3;
 
     string inputfile="parameterfiles/liddrivencavity.txt";
-    string outputfile="finaldata/liddrivencavity200.txt";
+    string outputfile="finaldata/liddrivencavityplot.txt";
 
     int N; // Number of particle lines
     int itermax;
     double eps;
     double omega, cgamma, beta, Pr, gx, gy, UI, VI, PI, res;
 
-    set_parameters("parameterfiles/test1.txt", xlength, ylength, imax, jmax, delx, dely, t_end, delt, tau, N,
+    set_parameters(inputfile, xlength, ylength, imax, jmax, delx, dely, t_end, delt, tau, N,
                    itermax, eps, omega, cgamma, Re, Pr, beta, gx, gy, UI, VI, PI);
     cout << xlength << ylength << imax << jmax << delx << dely << t_end << delt << tau << N << itermax << eps << omega
          << cgamma << Re << Pr << beta << gx << gy << endl;
@@ -778,7 +778,7 @@ int main() {
         ADAP_UV(U, V, F, G, P, FLAG, imax, jmax, delt, delx, dely);
 
         n += 1;
-        if (n % 100 == 0) {
+        if (n % 1000 == 0) {
             write_data(outputfile, U, V, P, n);
         }
     }

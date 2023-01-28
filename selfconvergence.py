@@ -112,9 +112,9 @@ plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
 plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
 fig, ax = plt.subplots(1,figsize=(24,12))
-ax.plot((timesteps_array50 * delt50)[1:], np.log2(qvalue),color="black",linewidth=5)
-ax.plot((timesteps_array50 * delt50)[1:], np.log2(qvalue),color="black",linewidth=5)
-ax.plot((timesteps_array50 * delt50)[1:], np.log2(qvalue),color="black",linewidth=5)
+ax.plot((timesteps_array50 * delt50)[1:], np.log2(qvalueu),color="black",linewidth=5)
+ax.plot((timesteps_array50 * delt50)[1:], np.log2(qvaluev),color="blue",linewidth=5)
+ax.plot((timesteps_array50 * delt50)[1:], np.log2(qvaluep),color="red",linewidth=5)
 ax.set_title("Self-Convergence Test")
 ax.set_xlabel("Time t in seconds")
 ax.set_ylabel("Convergence order p")
