@@ -1,7 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-f = open('finaldata/smallbackwardstep.txt', 'r')
+f = open('finaldata/liddrivencavity200.txt', 'r')
 
 # read parameters
 
@@ -86,7 +86,7 @@ while True:
     maskedP = np.ma.array(P, mask=fluid_flag)
     maskedP = maskedP[1:-1, 1:-1]
     maskedP = maskedP[::-1, :]
-    if plot_number % 2 == 0:
+    if plot_number % 1 == 0:
         fig, ax = plt.subplots()
         ax.streamplot(X, Y, U, V, color=U, linewidth=.5, cmap='autumn')
         ax.set_title(f'U V Stream Plot at Timestep {timestep} for time# {timestep * delt}')

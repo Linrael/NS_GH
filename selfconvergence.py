@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 f = open('finaldata/liddrivencavity50.txt', 'r')
-seconds=50
+seconds=100
 skipsteps=100
 delt=0.001
 
@@ -87,10 +87,36 @@ for i in range(timesteps200):
 
 h.close()
 
-difftop = u50[1:,:,:] - u100[1:, ::2, ::2]
-diffbot = u100[1:, ::2, ::2] - u200[1:, ::4, ::4]
-qvalue = np.linalg.norm(difftop, axis=(1, 2)) / np.linalg.norm(diffbot, axis=(1, 2))
+difftopu = u50[1:,:,:] - u100[1:, ::2, ::2]
+diffbotu = u100[1:, ::2, ::2] - u200[1:, ::4, ::4]
+qvalueu = np.linalg.norm(difftopu, axis=(1, 2)) / np.linalg.norm(diffbotu, axis=(1, 2))
 
-fig, ax = plt.subplots()
-ax.plot((timesteps_array50 * delt50)[1:], qvalue)
+difftopv = v50[1:,:,:] - v100[1:, ::2, ::2]
+diffbotv = v100[1:, ::2, ::2] - v200[1:, ::4, ::4]
+qvaluev = np.linalg.norm(difftopv, axis=(1, 2)) / np.linalg.norm(diffbotv, axis=(1, 2))
+
+difftopp = p50[1:,:,:] - p100[1:, ::2, ::2]
+diffbotp = p100[1:, ::2, ::2] - p200[1:, ::4, ::4]
+qvaluep = np.linalg.norm(difftopp, axis=(1, 2)) / np.linalg.norm(diffbotp, axis=(1, 2))
+
+
+SMALL_SIZE=36
+MEDIUM_SIZE =SMALL_SIZE+4
+BIGGER_SIZE = SMALL_SIZE+8
+plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
+plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+
+fig, ax = plt.subplots(1,figsize=(24,12))
+ax.plot((timesteps_array50 * delt50)[1:], np.log2(qvalue),color="black",linewidth=5)
+ax.plot((timesteps_array50 * delt50)[1:], np.log2(qvalue),color="black",linewidth=5)
+ax.plot((timesteps_array50 * delt50)[1:], np.log2(qvalue),color="black",linewidth=5)
+ax.set_title("Self-Convergence Test")
+ax.set_xlabel("Time t in seconds")
+ax.set_ylabel("Convergence order p")
+
 plt.show()

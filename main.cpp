@@ -683,9 +683,9 @@ int main() {
     double delt;
     double Re;
     double tau;
-    char problem = 4;
+    char problem = 3;
 
-    string inputfile="parameterfiles/test1.txt";
+    string inputfile="parameterfiles/liddrivencavity.txt";
     string outputfile="finaldata/liddrivencavity200.txt";
 
     int N; // Number of particle lines
