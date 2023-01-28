@@ -42,10 +42,10 @@ konvertieren[malen > 0.5] = [1, 1, 1]
 konvertieren[malen < 0.5] = [0, 0, 0]
 konvertieren = konvertieren[::-1, :]
 
-malfig, malax = plt.subplots()
-malax.imshow(konvertieren, extent=[0, 3, 0, 0.5], interpolation='nearest')
-malax.set_title("Geometry")
-plt.show()
+# malfig, malax = plt.subplots()
+# malax.imshow(konvertieren, extent=[0, 3, 0, 0.5], interpolation='nearest')
+# malax.set_title("Geometry")
+# plt.show()
 
 fluid_flag = np.logical_not(fluid_flag)
 
@@ -77,28 +77,35 @@ while True:
     U = np.swapaxes(np.array(f.readline().split('/')[:-1]).astype(np.double).reshape(imax + 2, jmax + 2), 0, 1)
     V = np.swapaxes(np.array(f.readline().split('/')[:-1]).astype(np.double).reshape(imax + 2, jmax + 2), 0, 1)
     P = np.swapaxes(np.array(f.readline().split('/')[:-1]).astype(np.double).reshape(imax + 2, jmax + 2), 0, 1)
-    # maskedU = np.ma.array(U, mask=fluid_flag)
-    # maskedU = maskedU[1:-1, 1:-1]
-    # maskedV = np.ma.array(V, mask=fluid_flag)
-    # maskedV = maskedV[1:-1, 1:-1]
+
+    # print(timestep, np.sum(U[:, 1] + U[:,2]), np.sum(U[:, -2] + U[:,-3]))
+
+    maskedU = np.ma.array(U, mask=fluid_flag)
+    maskedU = maskedU[1:-1, 1:-1]
+    maskedV = np.ma.array(V, mask=fluid_flag)
+    maskedV = maskedV[1:-1, 1:-1]
     U = U[1:-1, 1:-1]
     V = V[1:-1, 1:-1]
     maskedP = np.ma.array(P, mask=fluid_flag)
     maskedP = maskedP[1:-1, 1:-1]
     maskedP = maskedP[::-1, :]
-    if plot_number % 2 == 0:
+    if plot_number % 3 == 0:
         fig, ax = plt.subplots()
         ax.streamplot(X, Y, U, V, color=U, linewidth=.5, cmap='autumn')
         ax.set_title(f'U V Stream Plot at Timestep {timestep} for time# {timestep * delt}')
         ax.imshow(konvertieren, extent=[0, xlength - xlength / imax, 0, ylength - ylength / jmax], interpolation='nearest')
         ax.imshow(maskedP, extent=[0, xlength - xlength / imax, 0, ylength - ylength / jmax])
+        ax.spines['right'].set_color('none')
+        ax.spines['left'].set_color('none')
         plt.show()
-
+    break
         # fig, ax = plt.subplots()
         # ax.quiver(X[::indx, ::indy], Y[::indx, ::indy], U[::indx, ::indy], V[::indx, ::indy])
         # ax.set_title(f'U V Quiver Plot at Timestep {timestep} for time {timestep * delt}')
         # plt.show()
     plot_number = plot_number + 1
+
+
 
 # to save all data use this:
 # U=[]
