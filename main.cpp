@@ -683,10 +683,10 @@ int main() {
     double delt;
     double Re;
     double tau;
-    char problem = 3;
+    char problem = 4;
 
-    string inputfile="parameterfiles/liddrivencavity.txt";
-    string outputfile="finaldata/liddrivencavityplot.txt";
+    string inputfile="parameterfiles/roehren.txt";
+    string outputfile="finaldata/roehren.txt";
 
     int N; // Number of particle lines
     int itermax;
@@ -778,7 +778,7 @@ int main() {
         ADAP_UV(U, V, F, G, P, FLAG, imax, jmax, delt, delx, dely);
 
         n += 1;
-        if (n % 1000 == 0) {
+        if (n % 2000 == 0) {
             write_data(outputfile, U, V, P, n);
         }
     }

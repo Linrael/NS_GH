@@ -8,7 +8,7 @@ t_end 10.
 delt 0.00025
 tau 0.5
 N 0.
-itermax 10000.
+itermax 1000.
 eps 0.001
 omega 1.7
 gamma 0.9
