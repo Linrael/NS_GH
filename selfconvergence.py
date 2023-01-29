@@ -92,11 +92,12 @@ h.close()
 
 difftopu = u50[1:,:,:] - u100[1:, ::2, ::2]
 diffbotu = u100[1:, ::2, ::2] - u200[1:, ::4, ::4]
-qvalueu = np.linalg.norm(difftopu, axis=(1, 2)) / np.linalg.norm(diffbotu, axis=(1, 2))
+# qvalueu = np.linalg.norm(difftopu, axis=(1, 2)) / np.linalg.norm(diffbotu, axis=(1, 2))
 
 difftopv = v50[1:,:,:] - v100[1:, ::2, ::2]
 diffbotv = v100[1:, ::2, ::2] - v200[1:, ::4, ::4]
-qvaluev = np.linalg.norm(difftopv, axis=(1, 2)) / np.linalg.norm(diffbotv, axis=(1, 2))
+# qvaluev = np.linalg.norm(difftopv, axis=(1, 2)) / np.linalg.norm(diffbotv, axis=(1, 2))
+qvalue= np.linalg.norm(np.sqrt(difftopu*difftopu+difftopv*difftopv),axis=(1,2))/np.linalg.norm(np.sqrt(diffbotu*diffbotu+diffbotv*diffbotv),axis=(1,2))
 
 difftopp = p50[1:,:,:] - p100[1:, ::2, ::2]
 diffbotp = p100[1:, ::2, ::2] - p200[1:, ::4, ::4]
@@ -115,8 +116,9 @@ plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
 plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
 fig, ax = plt.subplots(1,figsize=(24,12))
-ax.plot((timesteps_array50 * delt50)[1:], np.log2(qvalueu),color="black",linewidth=5)
-ax.plot((timesteps_array50 * delt50)[1:], np.log2(qvaluev),color="blue",linewidth=5)
+# ax.plot((timesteps_array50 * delt50)[1:], np.log2(qvalueu),color="black",linewidth=5)
+# ax.plot((timesteps_array50 * delt50)[1:], np.log2(qvaluev),color="blue",linewidth=5)
+ax.plot((timesteps_array50*delt50)[1:],np.log2(qvalue),linewidth=5)
 ax.plot((timesteps_array50 * delt50)[1:], np.log2(qvaluep),color="red",linewidth=5)
 ax.set_title("Self-Convergence Test")
 ax.set_xlabel("Time t in seconds")
