@@ -1,5 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib.patches import Rectangle
 
 SMALL_SIZE=30
 MEDIUM_SIZE =SMALL_SIZE+4
@@ -12,8 +13,7 @@ plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
 plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
 plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
-
-f = open('finaldata/liddrivencavityplot.txt', 'r')
+f = open('datafiles/roehren.txt', 'r')
 
 # read parameters
 
@@ -22,7 +22,8 @@ jmax = int(f.readline())
 xlength = float(f.readline())
 ylength = float(f.readline())
 delt = float(f.readline())
-delt=0.001
+delt=0.00025
+
 print(imax, jmax, xlength, ylength, delt, sep=" ")
 
 # initial fields
@@ -61,6 +62,7 @@ X = np.arange(0, xlength + 0 * 1.1 * xlength / imax, xlength / imax)
 Y = np.arange(0, ylength + 0 * 1.1 * ylength / jmax, ylength / jmax)
 X, Y = np.meshgrid(X, Y)
 
+
 plot_number = 0
 
 while True:
@@ -72,33 +74,47 @@ while True:
     V = np.swapaxes(np.array(f.readline().split('/')[:-1]).astype(np.double).reshape(imax + 2, jmax + 2), 0, 1)
     P = np.swapaxes(np.array(f.readline().split('/')[:-1]).astype(np.double).reshape(imax + 2, jmax + 2), 0, 1)
 
+
     U = U[1:-1, 1:-1]
+    Udot=np.where(U<0,0,U)
     V = V[1:-1, 1:-1]
-
-    indx=5
-    indy=5
-
     maskedP = np.ma.array(P, mask=fluid_flag)
     maskedP = maskedP[1:-1, 1:-1]
     maskedP = maskedP[::-1, :]
+    maskedP=maskedP-np.mean(maskedP)
 
-    if plot_number%1==0:
-        fig, ax = plt.subplots(figsize=(20, 20))
-        color = np.sqrt(np.hypot(U, V))
-        stream = ax.streamplot(X, Y, U, V, color=color, linewidth=3, cmap='afmhot', arrowstyle='-|>', arrowsize=1.7)
-        ax.set_title(f'Lid-Driven Cavity at {timestep * delt} seconds')
-        ax.imshow(konvertieren, extent=[0, xlength - xlength / imax, 0, ylength - ylength / jmax],
-                  interpolation='nearest')
-        im = ax.imshow(maskedP, extent=[0, xlength - xlength / imax, 0, ylength - ylength / jmax], alpha=0.99,
-                       norm="linear", vmax=0.05, vmin=-0.03)
-        ax.set_xlim(0, 1)
-        ax.set_ylim(0, 1)
+    if plot_number ==19:
+        color = np.hypot(Udot, V)
+        fig, ax = plt.subplots(figsize=(40,20))
+        stream=ax.streamplot(X, Y, Udot, V, color=color, linewidth=5, cmap='afmhot', arrowstyle='-|>', arrowsize=1.7)
+        ax.set_title(f'Pipes at {10.0} seconds')
+        ax.imshow(konvertieren, alpha=0.8,extent=[0, xlength - xlength / imax, 0, ylength - ylength / jmax], interpolation='nearest')
+        im=ax.imshow(maskedP, extent=[0, xlength - xlength / imax, 0, ylength - ylength / jmax])
+        ax.spines['right'].set_color('none')
+        ax.spines['left'].set_color('none')
         # ax.set_xlabel("x")
         # ax.set_ylabel("y")
-        fig.colorbar(im, ax=ax, label="Relative pressure P", shrink=0.5, pad=0.03,extend='both')
-        fig.colorbar(stream.lines, ax=ax, label="$\sqrt{\Vert u \Vert }$", location="left", shrink=0.5, pad=0.08)
-
-    plt.savefig(f'liddriven{timestep*delt}secs.pdf',dpi=300)
-    plt.show()
+        ax.add_patch(
+            Rectangle(
+                (0.0, 0.39),
+                0.49,
+                0.59,
+                facecolor='#333333',
+                zorder=3
+            ))
+        ax.add_patch(
+            Rectangle(
+                (0., 0.),
+                0.5,
+                0.2,
+                facecolor='#333333',
+                zorder=3
+            ))
+        fig.colorbar(im, ax=ax, label="Relative pressure P", shrink=0.5, pad=0.03)
+        fig.colorbar(stream.lines, ax=ax, label="$\Vert u \Vert$", location="left", shrink=0.5, pad=0.08)
+        plt.show()
 
     plot_number = plot_number + 1
+
+
+

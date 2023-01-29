@@ -92,11 +92,11 @@ h.close()
 
 difftopu = u50[1:,:,:] - u100[1:, ::2, ::2]
 diffbotu = u100[1:, ::2, ::2] - u200[1:, ::4, ::4]
-# qvalueu = np.linalg.norm(difftopu, axis=(1, 2)) / np.linalg.norm(diffbotu, axis=(1, 2))
+qvalueu = np.linalg.norm(difftopu, axis=(1, 2)) / np.linalg.norm(diffbotu, axis=(1, 2))
 
 difftopv = v50[1:,:,:] - v100[1:, ::2, ::2]
 diffbotv = v100[1:, ::2, ::2] - v200[1:, ::4, ::4]
-# qvaluev = np.linalg.norm(difftopv, axis=(1, 2)) / np.linalg.norm(diffbotv, axis=(1, 2))
+qvaluev = np.linalg.norm(difftopv, axis=(1, 2)) / np.linalg.norm(diffbotv, axis=(1, 2))
 qvalue= np.linalg.norm(np.sqrt(difftopu*difftopu+difftopv*difftopv),axis=(1,2))/np.linalg.norm(np.sqrt(diffbotu*diffbotu+diffbotv*diffbotv),axis=(1,2))
 
 difftopp = p50[1:,:,:] - p100[1:, ::2, ::2]
@@ -104,9 +104,9 @@ diffbotp = p100[1:, ::2, ::2] - p200[1:, ::4, ::4]
 qvaluep = np.linalg.norm(difftopp, axis=(1, 2)) / np.linalg.norm(diffbotp, axis=(1, 2))
 
 
-SMALL_SIZE=36
+SMALL_SIZE=30
 MEDIUM_SIZE =SMALL_SIZE+4
-BIGGER_SIZE = SMALL_SIZE+8
+BIGGER_SIZE = SMALL_SIZE+10
 plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
 plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
 plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
@@ -115,14 +115,19 @@ plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
 plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
 plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
-fig, ax = plt.subplots(1,figsize=(24,12))
-# ax.plot((timesteps_array50 * delt50)[1:], np.log2(qvalueu),color="black",linewidth=5)
-# ax.plot((timesteps_array50 * delt50)[1:], np.log2(qvaluev),color="blue",linewidth=5)
-ax.plot((timesteps_array50*delt50)[1:],np.log2(qvalue),linewidth=5)
-ax.plot((timesteps_array50 * delt50)[1:], np.log2(qvaluep),color="red",linewidth=5)
+fig, ax = plt.subplots(1,figsize=(20,20))
+# ax.plot((timesteps_array50 * delt50)[1:], np.log2(qvalueu),color="black",linewidth=5,label='U')
+# ax.plot((timesteps_array50 * delt50)[1:], np.log2(qvaluev),color="blue",linewidth=5,label='V')
+ax.plot((timesteps_array50*delt50)[1:],np.log2(qvalue),color='#012F5D',linewidth=7,label='U^2+v^2')
+ax.plot((timesteps_array50 * delt50)[1:], np.log2(qvaluep),color="#012F5D",linewidth=7,label='P')
+ax.hlines(y=1.1449523463098232,xmin=-5,xmax=100,color="black",linestyle=(0, (1, 10)),linewidth=3)
+ax.hlines(y=1.0706206606334314,xmin=-5,xmax=100,color="black",linestyle=(0, (1, 10)),linewidth=3)
+
 ax.set_title("Self-Convergence Test")
 ax.set_xlabel("Time t in seconds")
 ax.set_ylabel("Convergence order p")
-ax.legend()
+ax.set_ylim((1.05,1.3))
+ax.set_xlim(-3,103)
 
 plt.show()
+plt.savefig('selfconv.pdf',dpi=300)

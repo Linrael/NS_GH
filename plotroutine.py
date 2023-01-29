@@ -1,7 +1,18 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-f = open('finaldata/smallbackwardstep.txt', 'r')
+SMALL_SIZE=30
+MEDIUM_SIZE =SMALL_SIZE+4
+BIGGER_SIZE = SMALL_SIZE+10
+plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
+plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+
+f = open('datafiles/roehren.txt', 'r')
 
 # read parameters
 
@@ -89,16 +100,17 @@ while True:
     maskedP = np.ma.array(P, mask=fluid_flag)
     maskedP = maskedP[1:-1, 1:-1]
     maskedP = maskedP[::-1, :]
-    if plot_number % 3 == 0:
-        fig, ax = plt.subplots()
-        ax.streamplot(X, Y, U, V, color=U, linewidth=.5, cmap='autumn')
+    if plot_number % 2 == 0:
+        color = np.sqrt(np.hypot(Udot, V))
+        fig, ax = plt.subplots(figsize=(20,20))
+        ax.streamplot(X, Y, U, V, color=color, linewidth=3, cmap='autumn')
         ax.set_title(f'U V Stream Plot at Timestep {timestep} for time# {timestep * delt}')
         ax.imshow(konvertieren, extent=[0, xlength - xlength / imax, 0, ylength - ylength / jmax], interpolation='nearest')
         ax.imshow(maskedP, extent=[0, xlength - xlength / imax, 0, ylength - ylength / jmax])
         ax.spines['right'].set_color('none')
         ax.spines['left'].set_color('none')
         plt.show()
-    break
+
         # fig, ax = plt.subplots()
         # ax.quiver(X[::indx, ::indy], Y[::indx, ::indy], U[::indx, ::indy], V[::indx, ::indy])
         # ax.set_title(f'U V Quiver Plot at Timestep {timestep} for time {timestep * delt}')
